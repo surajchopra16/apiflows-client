@@ -4,7 +4,6 @@ import { MoreVertical } from "lucide-react";
 type StartNodeProps = {
     id: string;
     position: { x: number; y: number };
-    data: Record<string, any>;
 };
 
 const StartNode = ({ id, position }: StartNodeProps) => {
@@ -12,8 +11,16 @@ const StartNode = ({ id, position }: StartNodeProps) => {
         <div
             data-node-id={id}
             style={{ top: position.y, left: position.x }}
-            className="drag-node absolute select-none">
-            <div className="rounded-10 w-64 bg-white px-4 py-3 shadow-sm ring-1 ring-[#EBEBEB] hover:shadow-md">
+            className="node absolute select-none">
+            <div className="rounded-10 relative w-64 bg-white px-4 py-3 shadow-sm ring-1 ring-[#EBEBEB] hover:shadow-md">
+                {/* Output Port (right center) */}
+                <div
+                    data-output-port-id={"1"}
+                    className="output-port absolute top-1/2 right-[-6px] z-10 h-3 w-3 -translate-y-1/2 cursor-pointer rounded-full border border-white bg-blue-500"
+                    title="Output port"
+                    aria-label="Output port"
+                />
+
                 {/* Top Bar */}
                 <div className="drag-handle flex cursor-grab items-center justify-between">
                     <div className="flex items-center gap-2">
