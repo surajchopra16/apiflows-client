@@ -1,4 +1,5 @@
 import React, { useState, useRef, useLayoutEffect } from "react";
+import { Plus, ZoomIn, ZoomOut, MoveHorizontal, Play } from "lucide-react";
 import PipelineNode from "./PipelineNode.tsx";
 import StartNode from "./StartNode.tsx";
 
@@ -28,7 +29,7 @@ const nodeRegistry: Record<string, any> = {
 const Flow = () => {
     /** Canvas position and scale */
     const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [scale] = useState(1);
+    const [scale, setScale] = useState(1);
 
     /** Nodes */
     const [nodes, setNodes] = useState<Node[]>([
@@ -49,12 +50,67 @@ const Flow = () => {
     const svgRef = useRef<SVGSVGElement>(null);
     const tempConnectorRef = useRef<SVGPathElement>(null);
 
-    // Force re-render after layout to ensure refs are set
-    const [, setLayoutReady] = useState(false);
-    useLayoutEffect(() => setLayoutReady(true), []);
+    /** Update connectors on scale change */
+    useLayoutEffect(() => {
+        const svg = svgRef.current;
+        if (!svg) return;
 
-    /** Get canvas position from screen coordinates */
-    const getCanvasPosition = (x: number, y: number) => {
+        connectors.forEach((connector) => {
+            const connectorElement = svg.querySelector(
+                `[data-connector-id="${connector.id}"] path`
+            );
+            if (!connectorElement) return;
+
+            const sourcePos = getPortPosition("output", connector.source, connector.sourcePort);
+            const targetPos = getPortPosition("input", connector.target, connector.targetPort);
+            const { d } = getConnectorGeometry(sourcePos, targetPos);
+
+            connectorElement.setAttribute("d", d);
+        });
+    }, [scale, position]);
+
+    /** Handle the zooming out of the canvas */
+    const handleZoomOut = () => {
+        setScale((prev) => Math.max(0.75, prev - 0.05));
+    };
+
+    /** Handle the zooming in of the canvas */
+    const handleZoomIn = () => {
+        setScale((prev) => Math.min(1.25, prev + 0.05));
+    };
+
+    /** Handle fitting the view to the nodes */
+    const handleFitView = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        // Calculate the bounding box
+        const padding = 50;
+        const minX = Math.min(...nodes.map((n) => n.position.x)) - padding;
+        const minY = Math.min(...nodes.map((n) => n.position.y)) - padding;
+        const maxX = Math.max(...nodes.map((n) => n.position.x + 250)) + padding;
+        const maxY = Math.max(...nodes.map((n) => n.position.y + 150)) + padding;
+
+        const boundingBoxWidth = Math.max(1, maxX - minX);
+        const boundingBoxHeight = Math.max(1, maxY - minY);
+
+        // Calculate the new scale
+        const scaleX = canvas.clientWidth / boundingBoxWidth;
+        const scaleY = canvas.clientHeight / boundingBoxHeight;
+        const newScale = Math.min(1, Math.max(0.75, Math.min(scaleX, scaleY)));
+
+        // Calculate the new position
+        const newPosition = {
+            x: canvas.clientWidth / 2 - (minX + boundingBoxWidth / 2) * newScale,
+            y: canvas.clientHeight / 2 - (minY + boundingBoxHeight / 2) * newScale
+        };
+
+        setScale(newScale);
+        setPosition(newPosition);
+    };
+
+    /** Convert the screen coordinates to canvas coordinates */
+    const convertToCanvasPosition = (x: number, y: number) => {
         const canvas = canvasRef.current;
         if (!canvas) return { x: 0, y: 0 };
 
@@ -65,18 +121,12 @@ const Flow = () => {
         };
     };
 
-    /** Get the center position of an element relative to the canvas */
-    const getElementCanvasPosition = (element: Element) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return { x: 0, y: 0 };
-
-        const elementRect = element.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-
-        return {
-            x: (elementRect.left + elementRect.width / 2 - canvasRect.left - position.x) / scale,
-            y: (elementRect.top + elementRect.height / 2 - canvasRect.top - position.y) / scale
-        };
+    /** Get the element position relative to the canvas */
+    const getElementPosition = (element: Element) => {
+        const rect = element.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        return convertToCanvasPosition(x, y);
     };
 
     /** Get the port position relative to the canvas */
@@ -87,17 +137,10 @@ const Flow = () => {
         const node = canvas.querySelector(`[data-node-id="${nodeId}"]`);
         if (!node) return { x: 0, y: 0 };
 
-        const cls = type === "input" ? ".input-port" : ".output-port";
-        const port = node.querySelector(`${cls}[data-${type}-port-id="${portId}"]`);
-        const measure = port ?? node;
+        const cls = type === "input" ? "input-port" : "output-port";
+        const port = node.querySelector(`.${cls}[data-${type}-port-id="${portId}"]`) || node;
 
-        const portRect = measure.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-
-        return {
-            x: (portRect.left + portRect.width / 2 - canvasRect.left - position.x) / scale,
-            y: (portRect.top + portRect.height / 2 - canvasRect.top - position.y) / scale
-        };
+        return getElementPosition(port);
     };
 
     /** Get the connector geometry (Bézier curve) */
@@ -130,8 +173,8 @@ const Flow = () => {
         const nodeId = node.getAttribute("data-node-id") as string;
         const outputPortId = outputPort.getAttribute("data-output-port-id") as string;
 
-        const sourcePos = getElementCanvasPosition(outputPort);
-        const targetPos = getCanvasPosition(event.clientX, event.clientY);
+        const sourcePos = getElementPosition(outputPort);
+        const targetPos = convertToCanvasPosition(event.clientX, event.clientY);
         const { d } = getConnectorGeometry(sourcePos, targetPos);
 
         if (tempConnectorRef.current) {
@@ -141,7 +184,7 @@ const Flow = () => {
 
         /** Handle pointer move to update the temporary connector */
         const handlePointerMove = (moveEvent: PointerEvent) => {
-            const newTargetPos = getCanvasPosition(moveEvent.clientX, moveEvent.clientY);
+            const newTargetPos = convertToCanvasPosition(moveEvent.clientX, moveEvent.clientY);
             const { d } = getConnectorGeometry(sourcePos, newTargetPos);
             if (tempConnectorRef.current) tempConnectorRef.current.setAttribute("d", d);
         };
@@ -205,11 +248,11 @@ const Flow = () => {
 
         inputPorts.forEach((port) => {
             const pid = port.getAttribute("data-input-port-id") as string;
-            inputPositions[pid] = getElementCanvasPosition(port);
+            inputPositions[pid] = getElementPosition(port);
         });
         outputPorts.forEach((port) => {
             const pid = port.getAttribute("data-output-port-id") as string;
-            outputPositions[pid] = getElementCanvasPosition(port);
+            outputPositions[pid] = getElementPosition(port);
         });
 
         /** handle pointer move to drag the node */
@@ -281,8 +324,10 @@ const Flow = () => {
 
             if (canvasRef.current)
                 canvasRef.current.style.backgroundPosition = `${startPos.x + dx}px ${startPos.y + dy}px`;
-            if (contentRef.current)
+            if (contentRef.current) {
+                contentRef.current.style.transformOrigin = "0 0";
                 contentRef.current.style.transform = `translate(${startPos.x + dx}px, ${startPos.y + dy}px) scale(${scale})`;
+            }
         };
 
         /** Handle a pointer up to finalize panning */
@@ -352,7 +397,10 @@ const Flow = () => {
             <div
                 ref={contentRef}
                 className="h-full w-full"
-                style={{ transform: `translate(${position.x}px, ${position.y}px)`, scale: scale }}>
+                style={{
+                    transformOrigin: "0 0",
+                    transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`
+                }}>
                 {/* SVG for connectors */}
                 <svg ref={svgRef} className="absolute inset-0 h-full w-full overflow-visible">
                     {/* Connectors */}
@@ -380,6 +428,53 @@ const Flow = () => {
                         />
                     );
                 })}
+            </div>
+
+            {/* Bottom toolbar */}
+            <div className="absolute bottom-12 left-1/2 z-10 -translate-x-1/2">
+                <div className="flex items-center gap-1 rounded-xl bg-white px-2.5 py-2 shadow-sm ring-1 ring-[#EBEBEB]">
+                    {/* Zoom Out */}
+                    <button
+                        aria-label="Zoom Out"
+                        className="rounded-10 flex h-8 w-8 items-center justify-center text-gray-700 transition hover:bg-zinc-100 hover:text-gray-900 active:scale-95"
+                        onClick={handleZoomOut}>
+                        <ZoomOut size={16} />
+                    </button>
+
+                    {/* Zoom In */}
+                    <button
+                        aria-label="Zoom In"
+                        className="rounded-10 flex h-8 w-8 items-center justify-center text-gray-700 transition hover:bg-zinc-100 hover:text-gray-900 active:scale-95"
+                        onClick={handleZoomIn}>
+                        <ZoomIn size={16} />
+                    </button>
+
+                    {/* Fit View */}
+                    <button
+                        aria-label="Fit View"
+                        className="rounded-10 flex h-8 w-8 items-center justify-center text-gray-700 transition hover:bg-zinc-100 hover:text-gray-900 active:scale-95"
+                        onClick={handleFitView}>
+                        <MoveHorizontal size={16} />
+                    </button>
+
+                    <div className="mx-2 h-6 w-px bg-neutral-200" />
+
+                    {/* Run */}
+                    <button
+                        title="Run Flow"
+                        className="rounded-10 inline-flex h-8 items-center justify-center gap-1.5 bg-blue-600/90 px-3.5 text-xs font-medium text-white transition focus:outline-none active:scale-95">
+                        <Play size={14} />
+                        Run
+                    </button>
+
+                    {/* Add Block */}
+                    <button
+                        title="Add Block"
+                        className="rounded-10 inline-flex h-8 items-center justify-center gap-1.5 px-2.5 text-xs leading-none font-medium text-gray-700 transition hover:bg-zinc-100 focus:outline-none active:scale-95">
+                        <Plus size={14} />
+                        Block
+                    </button>
+                </div>
             </div>
         </div>
     );
