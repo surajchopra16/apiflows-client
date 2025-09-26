@@ -1,41 +1,55 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, type FC } from "react";
+import { DropdownMenu } from "radix-ui";
+import { ChevronDown } from "lucide-react";
+
+/** Body types */
+export type BodyType = "none" | "raw:text" | "raw:json";
 
 /** Body modes */
-const BODY_MODES = [
-    { label: "None", value: "none" },
-    { label: "Raw", value: "raw" }
-] as const;
+const BODY_MODES = ["none", "raw"] as const;
 
-export const Body: React.FC = () => {
-    const [bodyMode, setBodyMode] = useState("none");
+/** Body component */
+const Body: FC<{
+    bodyType: BodyType;
+    setBodyType: (type: BodyType) => void;
+    bodyValue: string;
+    setBodyValue: (value: string) => void;
+}> = ({ bodyType, setBodyType, bodyValue, setBodyValue }) => {
+    /** Body mode */
+    const bodyMode = bodyType.split(":")[0] as "none" | "raw";
 
-    const [rawType, setRawType] = useState<"json" | "text">("json");
-    const [jsonInput, setJsonInput] = useState<string>("{\n  \n}");
-    const [textInput, setTextInput] = useState<string>("");
+    /** Raw type */
+    const rawType = (bodyType.split(":")[1] || "text") as "text" | "json";
+
+    /** JSON error state */
     const [jsonError, setJsonError] = useState<string | null>(null);
 
-    // Validate JSON (debounced slightly)
+    /** Validate JSON input */
     useEffect(() => {
-        if (bodyMode !== "raw" || rawType !== "json") return;
-        const handle = setTimeout(() => {
+        if (bodyType !== "raw:json") return;
+
+        const handleCheck = setTimeout(() => {
             try {
-                if (jsonInput.trim() === "") {
+                if (bodyValue.trim() === "") {
                     setJsonError(null);
                     return;
                 }
-                JSON.parse(jsonInput);
+
+                JSON.parse(bodyValue);
                 setJsonError(null);
             } catch {
                 setJsonError("Invalid JSON");
             }
         }, 250);
-        return () => clearTimeout(handle);
-    }, [jsonInput, bodyMode, rawType]);
 
-    const formatJson = () => {
+        return () => clearTimeout(handleCheck);
+    }, [bodyType, bodyValue]);
+
+    /** Format JSON input */
+    const formatJSON = () => {
         try {
-            const parsed = JSON.parse(jsonInput || "null");
-            setJsonInput(JSON.stringify(parsed, null, 2));
+            const parsed = JSON.parse(bodyValue || "null");
+            setBodyValue(JSON.stringify(parsed, null, 4));
             setJsonError(null);
         } catch {
             setJsonError("Invalid JSON - cannot format");
@@ -43,48 +57,69 @@ export const Body: React.FC = () => {
     };
 
     return (
-        <div className="mt-4 space-y-5 p-1.5">
-            {/* Body mode selection */}
-            <div className="flex items-center gap-6">
+        <div className="mt-6 space-y-5 px-1.5">
+            {/* Header */}
+            <div className="flex items-center space-x-5">
+                {/* Body mode input */}
                 {BODY_MODES.map((mode) => (
                     <label
-                        key={mode.value}
-                        className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                        key={mode}
+                        aria-label={`Select ${mode} body mode`}
+                        className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                         <input
                             type="radio"
-                            name="body-mode"
-                            value={mode.value}
-                            checked={mode.value === bodyMode}
-                            onChange={() => setBodyMode(mode.value)}
-                            className="h-3.5 w-3.5 text-blue-600 focus:ring-blue-600"
+                            value={mode}
+                            checked={mode === bodyMode}
+                            onChange={() => setBodyType(mode === "none" ? "none" : "raw:text")}
+                            className="h-3.5 w-3.5 border border-[#E6E6E6] text-blue-500 capitalize checked:border-none focus:ring-blue-500"
                         />
-                        {mode.label}
+                        {mode}
                     </label>
                 ))}
 
+                {/* Raw type dropdown and format button */}
                 {bodyMode === "raw" && (
-                    <div className="flex items-center gap-2">
-                        <div className="flex overflow-hidden rounded-md border border-gray-200">
-                            {(["json", "text"] as const).map((t) => (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => setRawType(t)}
-                                    className={`px-3 py-1.5 text-[12px] font-medium ${
-                                        rawType === t
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-white text-gray-600 hover:bg-gray-50"
-                                    }`}>
-                                    {t.toUpperCase()}
-                                </button>
-                            ))}
-                        </div>
+                    <div className="flex w-full items-center justify-between pl-3">
+                        {/* Raw type dropdown */}
+                        <DropdownMenu.Root>
+                            <DropdownMenu.Trigger className="inline-flex items-center">
+                                <span className="text-xs font-medium text-gray-700">
+                                    {rawType === "json" ? "JSON" : "Text"}
+                                </span>
+                                <ChevronDown className="ml-2 h-4 w-4 text-gray-600" />
+                            </DropdownMenu.Trigger>
 
+                            <DropdownMenu.Content
+                                sideOffset={10}
+                                className="rounded-10 min-w-20 border border-[#EBEBEB] bg-white p-1 shadow-md">
+                                <DropdownMenu.Item
+                                    aria-label="Select text raw type"
+                                    onClick={() => {
+                                        setBodyType("raw:text");
+                                        setBodyValue("");
+                                    }}
+                                    className="flex w-full items-center rounded-md px-3 py-2 text-xs font-medium text-gray-800 hover:bg-zinc-100">
+                                    Text
+                                </DropdownMenu.Item>
+
+                                <DropdownMenu.Item
+                                    aria-label="Select JSON raw type"
+                                    onClick={() => {
+                                        setBodyType("raw:json");
+                                        setBodyValue("{\n \n}");
+                                    }}
+                                    className="flex w-full items-center rounded-md px-3 py-2 text-xs font-medium text-gray-800 hover:bg-zinc-100">
+                                    JSON
+                                </DropdownMenu.Item>
+                            </DropdownMenu.Content>
+                        </DropdownMenu.Root>
+
+                        {/* Format button (only for JSON) */}
                         {rawType === "json" && (
                             <button
                                 type="button"
-                                onClick={formatJson}
-                                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-medium text-gray-700 hover:bg-gray-50">
+                                onClick={formatJSON}
+                                className="pr-2 text-xs font-medium text-gray-700 select-none">
                                 Format
                             </button>
                         )}
@@ -94,44 +129,40 @@ export const Body: React.FC = () => {
 
             {/* Editor area */}
             <div>
-                {bodyMode === "none" && (
+                {bodyType === "none" ? (
                     <div className="text-xs font-normal text-gray-500">
                         No body will be sent with this request
                     </div>
-                )}
-
-                {bodyMode === "raw" && rawType === "json" && (
-                    <div className="space-y-2">
+                ) : bodyType === "raw:text" ? (
+                    <textarea
+                        value={bodyValue}
+                        onChange={(e) => setBodyValue(e.target.value)}
+                        placeholder="Enter plain text here..."
+                        spellCheck={false}
+                        className="min-h-44 w-full resize-y rounded-lg border border-[#EBEBEB] px-3 py-2 font-mono text-xs leading-5 font-normal text-gray-700 focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+                    />
+                ) : bodyType === "raw:json" ? (
+                    <div>
                         <textarea
-                            value={jsonInput}
-                            onChange={(e) => setJsonInput(e.target.value)}
+                            value={bodyValue}
+                            onChange={(e) => setBodyValue(e.target.value)}
                             placeholder="Enter JSON here..."
-                            className={`min-h-[220px] w-full resize-y rounded-md border px-3 py-2 font-mono text-[12px] leading-5 ${
-                                jsonError
-                                    ? "border-red-300 focus:ring-red-500"
-                                    : "border-gray-200 focus:ring-blue-600"
-                            } focus:ring-1 focus:outline-none`}
                             spellCheck={false}
+                            className="min-h-44 w-full resize-y rounded-lg border border-[#EBEBEB] px-3 py-2 font-mono text-xs leading-5 font-normal text-gray-700 focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
                         />
-                        <div className="flex items-center justify-between">
-                            <div
-                                className={`text-[11px] ${jsonError ? "text-red-600" : "text-gray-400"}`}>
-                                {jsonError ? jsonError : "Valid JSON"}
-                            </div>
+
+                        <div>
+                            {jsonError ? (
+                                <div className="mt-1 ml-0.5 text-xs text-red-500">{jsonError}</div>
+                            ) : (
+                                <div className="mt-1 ml-0.5 text-xs text-gray-500">Valid JSON</div>
+                            )}
                         </div>
                     </div>
-                )}
-
-                {bodyMode === "raw" && rawType === "text" && (
-                    <textarea
-                        value={textInput}
-                        onChange={(e) => setTextInput(e.target.value)}
-                        placeholder="Enter plain text..."
-                        className="min-h-[220px] w-full resize-y rounded-md border border-gray-200 px-3 py-2 font-mono text-[12px] leading-5 focus:ring-1 focus:ring-blue-600 focus:outline-none"
-                        spellCheck={false}
-                    />
-                )}
+                ) : null}
             </div>
         </div>
     );
 };
+
+export default Body;
