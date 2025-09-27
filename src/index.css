@@ -1,9 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap");
 
+/* Tailwind CSS */
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
 
 @theme {
     --font-sans: "Inter", "sans-serif";
     --radius-10: 10px;
+}
+
+/* Hide scrollbar for all browsers */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }

@@ -26,7 +26,7 @@ const nodeRegistry: Record<string, any> = {
     pipeline: PipelineNode
 };
 
-const Flow = () => {
+const Editor = () => {
     /** Canvas position and scale */
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [scale, setScale] = useState(1);
@@ -431,7 +431,7 @@ const Flow = () => {
             </div>
 
             {/* Bottom toolbar */}
-            <div className="absolute bottom-12 left-1/2 z-10 -translate-x-1/2">
+            <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2">
                 <div className="flex items-center gap-1 rounded-xl bg-white px-2.5 py-2 shadow-sm ring-1 ring-[#EBEBEB]">
                     {/* Zoom Out */}
                     <button
@@ -480,4 +480,4 @@ const Flow = () => {
     );
 };
 
-export default Flow;
+export default Editor;
