@@ -1,5 +1,5 @@
 /** Imported modules */
-import type { Request } from "../store/RequestStore.ts";
+import type { Body, Header, QueryParam, Request } from "./types.ts";
 
 /** Validates the URL */
 const validateURL = (url: string) => {
@@ -14,7 +14,7 @@ const validateURL = (url: string) => {
 };
 
 /** Validates the query parameters */
-const validateQueryParams = (queryParams: Request["queryParams"]) => {
+const validateQueryParams = (queryParams: QueryParam[]) => {
     const errors: string[] = [];
 
     queryParams.forEach((param, index) => {
@@ -31,7 +31,7 @@ const validateQueryParams = (queryParams: Request["queryParams"]) => {
 };
 
 /** Validates the headers */
-const validateHeaders = (headers: Request["headers"]) => {
+const validateHeaders = (headers: Header[]) => {
     const errors: string[] = [];
 
     headers.forEach((header, index) => {
@@ -48,7 +48,7 @@ const validateHeaders = (headers: Request["headers"]) => {
 };
 
 /** Validates the body */
-const validateBody = (body: Request["body"]) => {
+const validateBody = (body: Body) => {
     const errors: string[] = [];
 
     if (body.type === "none") return errors;
