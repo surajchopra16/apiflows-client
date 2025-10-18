@@ -1,26 +1,25 @@
 /** Imported modules */
 import { type FC, useRef, useState } from "react";
-import type { CollectionNode, RequestNode } from "../../utils/types.ts";
+import type { FolderNode, RequestNode } from "../../utils/types.ts";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useCollectionStore } from "../../store/collection-store.ts";
-import { useRequestStore } from "../../store/request-store.ts";
-import { requestAPI } from "../../api/request-api.ts";
-import { AUTO_HEADERS } from "../../utils/data.ts";
 import Request from "./Request.tsx";
-import Folder from "./Folder.tsx";
-import { collectionAPI } from "../../api/collection-api.ts";
 import { useConfirm } from "../../../../shared/overlays/ConfirmDialogProvider.tsx";
 import { toast } from "sonner";
+import { collectionAPI } from "../../api/collection-api.ts";
+import { useCollectionStore } from "../../store/collection-store.ts";
+import { requestAPI } from "../../api/request-api.ts";
+import { AUTO_HEADERS } from "../../utils/data.ts";
+import { useRequestStore } from "../../store/request-store.ts";
 import RenameDialog, { type RenameDialogHandler } from "../../overlays/RenameDialog.tsx";
 
-/** Collection component */
-const Collection: FC<{
+/** Folder component */
+const Folder: FC<{
     nodeId: string;
     activeNodeId: string;
     setActiveNodeId: (nodeId: string) => void;
-    collection: CollectionNode;
+    folder: FolderNode;
     onOpen: (node: RequestNode) => void;
-}> = ({ nodeId, activeNodeId, setActiveNodeId, collection, onOpen }) => {
+}> = ({ nodeId, activeNodeId, setActiveNodeId, folder, onOpen }) => {
     /** State */
     const [expanded, setExpanded] = useState(false);
 
@@ -31,16 +30,16 @@ const Collection: FC<{
     const confirm = useConfirm();
 
     /** Collection store */
-    const addRequestToCollection = useCollectionStore((state) => state.addRequestToCollection);
-    const addFolder = useCollectionStore((state) => state.addFolder);
-    const renameCollection = useCollectionStore((state) => state.renameCollection);
-    const removeCollection = useCollectionStore((state) => state.removeCollection);
+    const addRequestToFolder = useCollectionStore((state) => state.addRequestToFolder);
+    const renameFolder = useCollectionStore((state) => state.renameFolder);
+    const removeFolder = useCollectionStore((state) => state.removeFolder);
 
     /** Request store */
     const addRequest = useRequestStore((state) => state.addRequest);
 
     /** Variables */
-    const collectionId = collection._id;
+    const collectionId = nodeId.split("-")[1];
+    const folderId = folder._id;
     const isActive = nodeId === activeNodeId;
 
     /** Handle add request */
@@ -50,7 +49,7 @@ const Collection: FC<{
             // Create a new request in the server
             const { request, requestNode } = await requestAPI.createRequest({
                 collectionId: collectionId,
-                folderId: null,
+                folderId: folderId,
                 request: {
                     name: "New Request",
                     method: "GET" as const,
@@ -64,10 +63,10 @@ const Collection: FC<{
                 }
             });
             addRequest(request);
-            addRequestToCollection(collectionId, requestNode);
+            addRequestToFolder(collectionId, folderId, requestNode);
 
             // Select the request
-            setActiveNodeId(`collection-${collectionId}-request-${requestNode._id}`);
+            setActiveNodeId(`collection-${collectionId}-folder-${folderId}-request-${request._id}`);
             onOpen(requestNode);
 
             toast.success("Request created successfully", { id: toastId });
@@ -76,64 +75,53 @@ const Collection: FC<{
         }
     };
 
-    /** Handle add folder */
-    const handleAddFolder = async () => {
-        const toastId = toast.loading("Creating folder...");
-        try {
-            const folder = await collectionAPI.createFolder(collectionId, { name: "New Folder" });
-            addFolder(collectionId, folder);
-            toast.success("Folder created successfully", { id: toastId });
-        } catch {
-            toast.error("Failed to create folder", { id: toastId });
-        }
-    };
-
-    /** Handle rename collection */
-    const handleRenameCollection = async () => {
+    /** Handle rename folder */
+    const handleRenameFolder = async () => {
         if (!renameDialogRef.current) return;
         renameDialogRef.current.open({
-            type: "collection",
-            name: collection.name,
+            type: "folder",
+            name: folder.name,
             onConfirm: async (newName) => {
                 if (newName === null) return;
 
-                const toastId = toast.loading("Renaming collection...");
+                const toastId = toast.loading("Renaming folder...");
                 try {
-                    await collectionAPI.renameCollection(collectionId, { newName });
-                    renameCollection(collectionId, newName);
-                    toast.success("Collection renamed successfully", { id: toastId });
+                    await collectionAPI.renameFolder(collectionId, folder._id, { newName });
+                    renameFolder(collectionId, folder._id, newName);
+                    toast.success("Folder renamed successfully", { id: toastId });
                 } catch {
-                    toast.error("Failed to rename collection", { id: toastId });
+                    toast.error("Failed to rename folder", { id: toastId });
                 }
             }
         });
     };
 
-    /** Handle delete collection */
-    const handleDeleteCollection = async () => {
-        // Confirm the collection deletion
+    /** Handle delete folder */
+    const handleDeleteFolder = async () => {
+        // Confirm the folder deletion
         const confirmed = await confirm(
-            "Delete Collection",
-            "This action cannot be undone. Are you sure you want to delete this collection?"
+            "Delete Folder",
+            "This action cannot be undone. Are you sure you want to delete this folder?"
         );
         if (!confirmed) return;
 
-        const toastId = toast.loading("Deleting collection...");
+        const toastId = toast.loading("Deleting folder...");
         try {
-            await collectionAPI.deleteCollection(collectionId);
-            removeCollection(collectionId);
-            toast.success("Collection deleted successfully", { id: toastId });
+            await collectionAPI.deleteFolder(collectionId, folder._id);
+            removeFolder(collectionId, folder._id);
+            toast.success("Folder deleted successfully", { id: toastId });
         } catch {
-            toast.error("Failed to delete collection", { id: toastId });
+            toast.error("Failed to delete folder", { id: toastId });
         }
     };
 
     return (
         <>
-            {/* Collection node */}
+            {/* Folder node */}
             <div
-                aria-label={expanded ? "Collapse collection" : "Expand collection"}
+                aria-label={expanded ? "Collapse folder" : "Expand folder"}
                 aria-expanded={expanded}
+                style={{ paddingLeft: 24 }}
                 className={`group flex w-full cursor-pointer items-center justify-between rounded-md px-1.75 py-1.25 select-none ${
                     isActive ? "bg-[#F5F5F5]" : "hover:bg-[#F5F5F5]"
                 }`}
@@ -145,14 +133,32 @@ const Collection: FC<{
                     {/* Expand/collapse button */}
                     <button
                         type="button"
-                        aria-label="Expand/collapse collection button"
+                        aria-label="Expand/collapse folder button"
                         className="block rounded-sm p-1 hover:bg-[#EBEBEB] focus:outline-none">
                         <ExpandIcon expanded={expanded} />
                     </button>
 
-                    {/* Collection name */}
-                    <div className="truncate text-xs font-normal text-gray-900">
-                        {collection.name}
+                    {/* Folder icon and name */}
+                    <div className="flex items-center gap-1.5">
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="shrink-0 text-gray-700">
+                            <path
+                                d="M13 7L11.8845 4.76892C11.5634 4.1268 11.4029 3.80573 11.1634 3.57116C10.9516 3.36373 10.6963 3.20597 10.4161 3.10931C10.0992 3 9.74021 3 9.02229 3H5.2C4.0799 3 3.51984 3 3.09202 3.21799C2.71569 3.40973 2.40973 3.71569 2.21799 4.09202C2 4.51984 2 5.0799 2 6.2V7M2 7H17.2C18.8802 7 19.7202 7 20.362 7.32698C20.9265 7.6146 21.3854 8.07354 21.673 8.63803C22 9.27976 22 10.1198 22 11.8V16.2C22 17.8802 22 18.7202 21.673 19.362C21.3854 19.9265 20.9265 20.3854 20.362 20.673C19.7202 21 18.8802 21 17.2 21H6.8C5.11984 21 4.27976 21 3.63803 20.673C3.07354 20.3854 2.6146 19.9265 2.32698 19.362C2 18.7202 2 17.8802 2 16.2V7Z"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+
+                        <div className="truncate text-xs font-normal text-gray-900">
+                            {folder.name}
+                        </div>
                     </div>
                 </div>
 
@@ -240,23 +246,17 @@ const Collection: FC<{
                                     Add request
                                 </DropdownMenu.Item>
 
-                                <DropdownMenu.Item
-                                    className="cursor-pointer rounded-md px-2 py-1.5 text-xs font-normal text-gray-900 outline-none hover:bg-[#F5F5F5]"
-                                    onSelect={handleAddFolder}>
-                                    Add folder
-                                </DropdownMenu.Item>
-
-                                <DropdownMenu.Separator className="m-1 h-[0.5px] w-full bg-[#EBEBEB]" />
+                                <DropdownMenu.Separator className="m-1 h-[0.5px] bg-[#EBEBEB]" />
 
                                 <DropdownMenu.Item
                                     className="cursor-pointer rounded-md px-2 py-1.5 text-xs font-normal text-gray-900 outline-none hover:bg-[#F5F5F5]"
-                                    onSelect={handleRenameCollection}>
+                                    onSelect={handleRenameFolder}>
                                     Rename
                                 </DropdownMenu.Item>
 
                                 <DropdownMenu.Item
                                     className="cursor-pointer rounded-md px-2 py-1.5 text-xs font-normal text-red-600 outline-none hover:bg-[#F5F5F5]"
-                                    onSelect={handleDeleteCollection}>
+                                    onSelect={handleDeleteFolder}>
                                     Delete
                                 </DropdownMenu.Item>
                             </DropdownMenu.Content>
@@ -265,30 +265,19 @@ const Collection: FC<{
                 </div>
             </div>
 
-            {/* Collection children */}
+            {/* Folder children */}
             <div className={`mt-0.5 space-y-0.5 ${expanded ? "block" : "hidden"}`}>
-                {collection.children.map((child) =>
-                    child.type === "folder" ? (
-                        <Folder
-                            key={`${nodeId}-folder-${child._id}`}
-                            nodeId={`${nodeId}-folder-${child._id}`}
-                            activeNodeId={activeNodeId}
-                            setActiveNodeId={setActiveNodeId}
-                            folder={child}
-                            onOpen={onOpen}
-                        />
-                    ) : (
-                        <Request
-                            key={`${nodeId}-request-${child._id}`}
-                            depth={1}
-                            nodeId={`${nodeId}-request-${child._id}`}
-                            activeNodeId={activeNodeId}
-                            setActiveNodeId={setActiveNodeId}
-                            request={child}
-                            onOpen={onOpen}
-                        />
-                    )
-                )}
+                {folder.children.map((child) => (
+                    <Request
+                        key={`${nodeId}-request-${child._id}`}
+                        depth={2}
+                        nodeId={`${nodeId}-request-${child._id}`}
+                        activeNodeId={activeNodeId}
+                        setActiveNodeId={setActiveNodeId}
+                        request={child}
+                        onOpen={onOpen}
+                    />
+                ))}
             </div>
 
             {/* Rename dialog */}
@@ -311,4 +300,4 @@ const ExpandIcon: FC<{ expanded: boolean }> = ({ expanded }) => (
     </svg>
 );
 
-export default Collection;
+export default Folder;
