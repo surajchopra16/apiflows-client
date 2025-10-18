@@ -5,7 +5,7 @@ import type { CollectionNode, FolderNode, RequestNode } from "../utils/types.ts"
 /** Collection store type */
 type CollectionStore = {
     collections: CollectionNode[];
-    addCollections: (collections: CollectionNode[]) => void;
+    setCollections: (collections: CollectionNode[]) => void;
     addCollection: (collection: CollectionNode) => void;
     renameCollection: (id: string, newName: string) => void;
     removeCollection: (id: string) => void;
@@ -22,9 +22,8 @@ type CollectionStore = {
 export const useCollectionStore = create<CollectionStore>((set) => ({
     collections: [],
 
-    /** Add multiple collections */
-    addCollections: (collections) =>
-        set((state) => ({ collections: [...state.collections, ...collections] })),
+    /** Set all the collections */
+    setCollections: (collections) => set(() => ({ collections })),
 
     /** Add a new collection */
     addCollection: (collection) =>
