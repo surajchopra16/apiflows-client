@@ -3,7 +3,7 @@ import { type FC, useRef, useState } from "react";
 import type { FolderNode, RequestNode } from "../../utils/types.ts";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Request from "./Request.tsx";
-import { useConfirm } from "../../../../shared/overlays/ConfirmDialogProvider.tsx";
+import { useAlertDialog } from "../../../../shared/overlays/AlertDialogProvider.tsx";
 import { toast } from "sonner";
 import { collectionAPI } from "../../api/collection-api.ts";
 import { useCollectionStore } from "../../store/collection-store.ts";
@@ -26,8 +26,8 @@ const Folder: FC<{
     /** Rename dialog ref */
     const renameDialogRef = useRef<RenameDialogHandler | null>(null);
 
-    /** Confirm hook */
-    const confirm = useConfirm();
+    /** Alert dialog */
+    const alertDialog = useAlertDialog();
 
     /** Collection store */
     const addRequestToFolder = useCollectionStore((state) => state.addRequestToFolder);
@@ -95,10 +95,12 @@ const Folder: FC<{
     /** Handle delete folder */
     const handleDeleteFolder = async () => {
         // Confirm the folder deletion
-        const confirmed = await confirm(
-            "Delete Folder",
-            "This action cannot be undone. Are you sure you want to delete this folder?"
-        );
+        const confirmed = await alertDialog({
+            title: "Delete Folder",
+            message: "This action cannot be undone. Are you sure you want to delete this folder?",
+            cancelText: "Cancel",
+            confirmText: "Delete"
+        });
         if (!confirmed) return;
 
         const toastId = toast.loading("Deleting folder...");

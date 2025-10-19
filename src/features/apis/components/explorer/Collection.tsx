@@ -9,7 +9,7 @@ import { AUTO_HEADERS } from "../../utils/data.ts";
 import Request from "./Request.tsx";
 import Folder from "./Folder.tsx";
 import { collectionAPI } from "../../api/collection-api.ts";
-import { useConfirm } from "../../../../shared/overlays/ConfirmDialogProvider.tsx";
+import { useAlertDialog } from "../../../../shared/overlays/AlertDialogProvider.tsx";
 import { toast } from "sonner";
 import RenameDialog, { type RenameDialogHandler } from "../../overlays/RenameDialog.tsx";
 
@@ -27,8 +27,8 @@ const Collection: FC<{
     /** Rename dialog ref */
     const renameDialogRef = useRef<RenameDialogHandler | null>(null);
 
-    /** Confirm hook */
-    const confirm = useConfirm();
+    /** Alert dialog */
+    const alertDialog = useAlertDialog();
 
     /** Collection store */
     const addRequestToCollection = useCollectionStore((state) => state.addRequestToCollection);
@@ -111,10 +111,13 @@ const Collection: FC<{
     /** Handle delete collection */
     const handleDeleteCollection = async () => {
         // Confirm the collection deletion
-        const confirmed = await confirm(
-            "Delete Collection",
-            "This action cannot be undone. Are you sure you want to delete this collection?"
-        );
+        const confirmed = await alertDialog({
+            title: "Delete Collection",
+            message:
+                "This action cannot be undone. Are you sure you want to delete this collection?",
+            cancelText: "Cancel",
+            confirmText: "Delete"
+        });
         if (!confirmed) return;
 
         const toastId = toast.loading("Deleting collection...");

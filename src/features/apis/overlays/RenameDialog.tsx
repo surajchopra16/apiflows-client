@@ -66,7 +66,7 @@ const RenameDialog: FC<{ ref: Ref<RenameDialogHandler> }> = ({ ref }) => {
                     <div className="flex items-start justify-between gap-3">
                         {/* Title and description */}
                         <div className="space-y-1.5">
-                            <Dialog.Title className="text-base font-semibold text-gray-900">
+                            <Dialog.Title className="text-base font-semibold text-gray-900 capitalize">
                                 Rename {type}
                             </Dialog.Title>
 

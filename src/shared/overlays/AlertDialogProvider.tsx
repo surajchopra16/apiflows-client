@@ -11,20 +11,41 @@ import {
 } from "react";
 
 /** Confirm function type */
-type ConfirmFn = (title: string, message: string) => Promise<boolean>;
+type ConfirmFn = (options: {
+    title: string;
+    message: string;
+    cancelText: string;
+    confirmText: string;
+}) => Promise<boolean>;
 
-/** Confirm context */
-const ConfirmContext = createContext<ConfirmFn | null>(null);
+/** Alert dialog context */
+const AlertDialogContext = createContext<ConfirmFn | null>(null);
 
-/** Confirm dialog provider component */
-export const ConfirmDialogProvider: FC<{ children: ReactNode }> = ({ children }) => {
+/** Alert dialog provider */
+export const AlertDialogProvider: FC<{ children: ReactNode }> = ({ children }) => {
     /** States */
     const [open, setOpen] = useState(false);
     const [title, setTitle] = useState("");
     const [message, setMessage] = useState("");
+    const [cancelText, setCancelText] = useState("");
+    const [confirmText, setConfirmText] = useState("");
 
     /** Resolver ref */
     const resolverRef = useRef<((value: boolean) => void) | null>(null);
+
+    /** Confirm function */
+    const confirm: ConfirmFn = useCallback(
+        ({ title, message, cancelText, confirmText }) =>
+            new Promise((resolve) => {
+                resolverRef.current = resolve;
+                setTitle(title);
+                setMessage(message);
+                setCancelText(cancelText);
+                setConfirmText(confirmText);
+                setOpen(true);
+            }),
+        []
+    );
 
     /** Handle close */
     const handleClose = (ok: boolean) => {
@@ -33,22 +54,10 @@ export const ConfirmDialogProvider: FC<{ children: ReactNode }> = ({ children })
         resolverRef.current = null;
     };
 
-    /** Confirm function */
-    const confirm: ConfirmFn = useCallback(
-        (title: string, message: string) =>
-            new Promise((resolve) => {
-                resolverRef.current = resolve;
-                setTitle(title);
-                setMessage(message);
-                setOpen(true);
-            }),
-        []
-    );
-
     return (
-        <ConfirmContext.Provider value={confirm}>
+        <AlertDialogContext.Provider value={confirm}>
             {children}
-            <AlertDialog.Root open={open}>
+            <AlertDialog.Root open={open} onOpenChange={(isOpen) => !isOpen && handleClose(false)}>
                 <AlertDialog.Portal>
                     {/* Overlay */}
                     <AlertDialog.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50" />
@@ -77,7 +86,7 @@ export const ConfirmDialogProvider: FC<{ children: ReactNode }> = ({ children })
                                     aria-label="Cancel"
                                     onClick={() => handleClose(false)}
                                     className="rounded-10 border border-[#E6E6E6] bg-white px-3.75 py-2.25 text-sm font-medium text-gray-900 hover:bg-zinc-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none">
-                                    Cancel
+                                    {cancelText}
                                 </button>
                             </AlertDialog.Cancel>
 
@@ -88,20 +97,20 @@ export const ConfirmDialogProvider: FC<{ children: ReactNode }> = ({ children })
                                     aria-label="Confirm"
                                     onClick={() => handleClose(true)}
                                     className="rounded-10 bg-blue-500 px-3.75 py-2.25 text-sm font-medium text-white hover:bg-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none">
-                                    Confirm
+                                    {confirmText}
                                 </button>
                             </AlertDialog.Action>
                         </div>
                     </AlertDialog.Content>
                 </AlertDialog.Portal>
             </AlertDialog.Root>
-        </ConfirmContext.Provider>
+        </AlertDialogContext.Provider>
     );
 };
 
-/** Use confirm hook */
-export const useConfirm = () => {
-    const context = useContext(ConfirmContext);
-    if (!context) throw new Error("useConfirm must be inside ConfirmProvider");
+/** Alert dialog hook */
+export const useAlertDialog = () => {
+    const context = useContext(AlertDialogContext);
+    if (!context) throw new Error("useAlertDialog must be inside AlertDialogProvider");
     return context;
 };
