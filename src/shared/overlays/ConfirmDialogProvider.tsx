@@ -34,13 +34,16 @@ export const ConfirmDialogProvider: FC<{ children: ReactNode }> = ({ children })
     };
 
     /** Confirm function */
-    const confirm: ConfirmFn = useCallback((title: string, message: string) => {
-        setTitle(title);
-        setMessage(message);
-        setOpen(true);
-
-        return new Promise<boolean>((resolve) => (resolverRef.current = resolve));
-    }, []);
+    const confirm: ConfirmFn = useCallback(
+        (title: string, message: string) =>
+            new Promise((resolve) => {
+                resolverRef.current = resolve;
+                setTitle(title);
+                setMessage(message);
+                setOpen(true);
+            }),
+        []
+    );
 
     return (
         <ConfirmContext.Provider value={confirm}>
@@ -52,34 +55,39 @@ export const ConfirmDialogProvider: FC<{ children: ReactNode }> = ({ children })
 
                     {/* Content */}
                     <AlertDialog.Content className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-120 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-gray-200 bg-white p-6 shadow-lg duration-200">
-                        {/* Title */}
-                        <AlertDialog.Title className="text-base leading-none font-semibold text-gray-900">
-                            {title}
-                        </AlertDialog.Title>
+                        {/* Header */}
+                        <div className="space-y-1.5">
+                            {/* Title */}
+                            <AlertDialog.Title className="text-base font-semibold text-gray-900">
+                                {title}
+                            </AlertDialog.Title>
 
-                        {/* Description */}
-                        <AlertDialog.Description className="mt-2.5 text-sm leading-relaxed font-normal text-gray-600">
-                            {message}
-                        </AlertDialog.Description>
+                            {/* Description */}
+                            <AlertDialog.Description className="text-sm leading-relaxed font-normal text-gray-600">
+                                {message}
+                            </AlertDialog.Description>
+                        </div>
 
-                        {/* Cancel & Confirm buttons */}
+                        {/* Buttons */}
                         <div className="mt-5 flex items-center justify-end gap-3">
+                            {/* Cancel button */}
                             <AlertDialog.Cancel asChild>
                                 <button
                                     type="button"
                                     aria-label="Cancel"
                                     onClick={() => handleClose(false)}
-                                    className="rounded-10 inline-flex h-10 items-center justify-center border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900 shadow-xs hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-600/90 focus-visible:outline-none">
+                                    className="rounded-10 border border-[#E6E6E6] bg-white px-3.75 py-2.25 text-sm font-medium text-gray-900 hover:bg-zinc-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none">
                                     Cancel
                                 </button>
                             </AlertDialog.Cancel>
 
+                            {/* Confirm button */}
                             <AlertDialog.Action asChild>
                                 <button
                                     type="button"
                                     aria-label="Confirm"
                                     onClick={() => handleClose(true)}
-                                    className="rounded-10 inline-flex h-10 items-center justify-center bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/90 focus-visible:outline-none">
+                                    className="rounded-10 bg-blue-500 px-3.75 py-2.25 text-sm font-medium text-white hover:bg-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none">
                                     Confirm
                                 </button>
                             </AlertDialog.Action>

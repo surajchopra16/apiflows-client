@@ -78,22 +78,18 @@ const Folder: FC<{
     /** Handle rename folder */
     const handleRenameFolder = async () => {
         if (!renameDialogRef.current) return;
-        renameDialogRef.current.open({
-            type: "folder",
-            name: folder.name,
-            onConfirm: async (newName) => {
-                if (newName === null) return;
 
-                const toastId = toast.loading("Renaming folder...");
-                try {
-                    await collectionAPI.renameFolder(collectionId, folder._id, { newName });
-                    renameFolder(collectionId, folder._id, newName);
-                    toast.success("Folder renamed successfully", { id: toastId });
-                } catch {
-                    toast.error("Failed to rename folder", { id: toastId });
-                }
-            }
-        });
+        const newName = await renameDialogRef.current.open({ type: "folder", name: folder.name });
+        if (newName === null) return;
+
+        const toastId = toast.loading("Renaming folder...");
+        try {
+            await collectionAPI.renameFolder(collectionId, folder._id, { newName });
+            renameFolder(collectionId, folder._id, newName);
+            toast.success("Folder renamed successfully", { id: toastId });
+        } catch {
+            toast.error("Failed to rename folder", { id: toastId });
+        }
     };
 
     /** Handle delete folder */
@@ -121,7 +117,7 @@ const Folder: FC<{
             <div
                 aria-label={expanded ? "Collapse folder" : "Expand folder"}
                 aria-expanded={expanded}
-                style={{ paddingLeft: 24 }}
+                style={{ paddingLeft: 23 }}
                 className={`group flex w-full cursor-pointer items-center justify-between rounded-md px-1.75 py-1.25 select-none ${
                     isActive ? "bg-[#F5F5F5]" : "hover:bg-[#F5F5F5]"
                 }`}
@@ -270,7 +266,7 @@ const Folder: FC<{
                 {folder.children.map((child) => (
                     <Request
                         key={`${nodeId}-request-${child._id}`}
-                        depth={2}
+                        depth={1.75}
                         nodeId={`${nodeId}-request-${child._id}`}
                         activeNodeId={activeNodeId}
                         setActiveNodeId={setActiveNodeId}

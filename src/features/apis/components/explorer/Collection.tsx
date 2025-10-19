@@ -91,22 +91,21 @@ const Collection: FC<{
     /** Handle rename collection */
     const handleRenameCollection = async () => {
         if (!renameDialogRef.current) return;
-        renameDialogRef.current.open({
-            type: "collection",
-            name: collection.name,
-            onConfirm: async (newName) => {
-                if (newName === null) return;
 
-                const toastId = toast.loading("Renaming collection...");
-                try {
-                    await collectionAPI.renameCollection(collectionId, { newName });
-                    renameCollection(collectionId, newName);
-                    toast.success("Collection renamed successfully", { id: toastId });
-                } catch {
-                    toast.error("Failed to rename collection", { id: toastId });
-                }
-            }
+        const newName = await renameDialogRef.current.open({
+            type: "collection",
+            name: collection.name
         });
+        if (newName === null) return;
+
+        const toastId = toast.loading("Renaming collection...");
+        try {
+            await collectionAPI.renameCollection(collectionId, { newName });
+            renameCollection(collectionId, newName);
+            toast.success("Collection renamed successfully", { id: toastId });
+        } catch {
+            toast.error("Failed to rename collection", { id: toastId });
+        }
     };
 
     /** Handle delete collection */
