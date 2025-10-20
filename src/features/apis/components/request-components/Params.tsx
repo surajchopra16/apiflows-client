@@ -1,18 +1,9 @@
+/** Imported modules */
 import { type FC } from "react";
-
-/** Query param type */
-export type QueryParam = {
-    enabled: boolean;
-    key: string;
-    value: string;
-    description: string;
-};
+import type { QueryParam } from "../../utils/types.ts";
 
 /** Props type */
-type Props = {
-    queryParams: QueryParam[];
-    setQueryParams: (data: QueryParam[]) => void;
-};
+type Props = { queryParams: QueryParam[]; setQueryParams: (data: QueryParam[]) => void };
 
 /** Params component */
 const Params: FC<Props> = ({ queryParams, setQueryParams }) => {
@@ -40,7 +31,7 @@ const Params: FC<Props> = ({ queryParams, setQueryParams }) => {
     const remove = (index: number) => setQueryParams(queryParams.filter((_, i) => i !== index));
 
     return (
-        <div className="mt-6 px-1.5">
+        <div className="mx-2 my-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 {/* Title and count */}

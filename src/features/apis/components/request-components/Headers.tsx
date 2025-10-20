@@ -1,21 +1,11 @@
+/** Imported modules */
 import { type FC, useState } from "react";
-
-/** Header type */
-export type Header = {
-    enabled: boolean;
-    key: string;
-    value: string;
-    description: string;
-    auto: boolean;
-};
+import type { Header } from "../../utils/types.ts";
 
 /** Props */
-type Props = {
-    headers: Header[];
-    setHeaders: (data: Header[] | ((prev: Header[]) => Header[])) => void;
-};
+type Props = { headers: Header[]; setHeaders: (data: Header[]) => void };
 
-/** Header's component */
+/** Headers component */
 const Headers: FC<Props> = ({ headers, setHeaders }) => {
     /** State to show/hide auto generated headers */
     const [showAuto, setShowAuto] = useState(false);
@@ -53,7 +43,7 @@ const Headers: FC<Props> = ({ headers, setHeaders }) => {
     const remove = (index: number) => setHeaders(headers.filter((_, i) => i !== index));
 
     return (
-        <div className="mt-6 px-1.5">
+        <div className="mx-2 my-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 {/* Title, count and show/hide auto button */}
