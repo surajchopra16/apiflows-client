@@ -1,3 +1,4 @@
+/** Imported modules */
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -16,6 +17,22 @@ export default tseslint.config([
             reactRefresh.configs.vite
         ],
         languageOptions: { ecmaVersion: 2020, globals: globals.browser },
-        rules: { "@typescript-eslint/no-explicit-any": "off" }
+        rules: {
+            "no-unused-vars": "off",
+            "@typescript-eslint/no-unused-vars": [
+                "error",
+                {
+                    args: "all",
+                    argsIgnorePattern: "^_",
+                    caughtErrors: "all",
+                    caughtErrorsIgnorePattern: "^_",
+                    destructuredArrayIgnorePattern: "^_",
+                    varsIgnorePattern: "^_",
+                    ignoreRestSiblings: true
+                }
+            ],
+            "@typescript-eslint/no-explicit-any": "warn",
+            "react-refresh/only-export-components": "warn"
+        }
     }
 ]);

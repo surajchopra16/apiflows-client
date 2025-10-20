@@ -1,4 +1,5 @@
-import { Outlet, Route, Routes } from "react-router";
+/** Imported modules */
+import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import Home from "./features/home/Home.tsx";
 import Login from "./features/login/Login.tsx";
 import Signup from "./features/signup/Signup.tsx";
@@ -7,45 +8,55 @@ import Sidebar from "./shared/components/Sidebar.tsx";
 import APIs from "./features/apis/APIs.tsx";
 import Docs from "./features/docs/Docs.tsx";
 import Flow from "./features/flow/Flow.tsx";
+import { Toaster } from "sonner";
+import { AlertDialogProvider } from "./shared/overlays/AlertDialogProvider.tsx";
 
 /** App component */
 const App = () => {
     return (
-        <Routes>
-            {/* Home route */}
-            <Route path="/" element={<Home />} />
+        <BrowserRouter>
+            <AlertDialogProvider>
+                {/* Toaster for notifications */}
+                <Toaster position="top-center" />
 
-            {/* Auth routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+                {/* Routes */}
+                <Routes>
+                    {/* Home route */}
+                    <Route path="/" element={<Home />} />
 
-            {/* App routes */}
-            <Route
-                element={
-                    <div className="flex h-screen w-full overflow-hidden bg-[#F5F5F5]">
-                        {/* Sidebar */}
-                        <Sidebar />
+                    {/* Auth routes */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
 
-                        {/* Content */}
-                        <div className="flex h-full min-w-0 flex-1 flex-col">
-                            <Header />
+                    {/* App routes */}
+                    <Route
+                        element={
+                            <div className="flex h-screen w-full overflow-hidden bg-[#F5F5F5]">
+                                {/* Sidebar */}
+                                <Sidebar />
 
-                            <div className="mr-2 mb-2 min-h-0 flex-1">
-                                <Outlet />
+                                {/* Content */}
+                                <div className="flex h-full min-w-0 flex-1 flex-col">
+                                    <Header />
+
+                                    <div className="mr-2 mb-2 min-h-0 flex-1">
+                                        <Outlet />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                }>
-                {/* APIs route */}
-                <Route path="/apis" element={<APIs />} />
+                        }>
+                        {/* APIs route */}
+                        <Route path="/apis" element={<APIs />} />
 
-                {/* Flow route */}
-                <Route path="/flow" element={<Flow />} />
+                        {/* Flow route */}
+                        <Route path="/flow" element={<Flow />} />
 
-                {/* Docs route */}
-                <Route path="/docs" element={<Docs />} />
-            </Route>
-        </Routes>
+                        {/* Docs route */}
+                        <Route path="/docs" element={<Docs />} />
+                    </Route>
+                </Routes>
+            </AlertDialogProvider>
+        </BrowserRouter>
     );
 };
 

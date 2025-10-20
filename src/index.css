@@ -1,9 +1,12 @@
+/* Google Font - Inter */
 @import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap");
 
 /* Tailwind CSS */
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
+@plugin "tailwindcss-animate";
 
+/* Custom tailwindcss theme */
 @theme {
     --font-sans: "Inter", "sans-serif";
     --radius-10: 10px;

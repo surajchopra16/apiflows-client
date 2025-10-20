@@ -5,14 +5,14 @@ import * as Dialog from "@radix-ui/react-dialog";
 /** Name type */
 type NameType = "collection" | "folder" | "request";
 
-/** Rename dialog handler type */
-export type RenameDialogHandler = {
+/** Rename dialog ref type */
+export type RenameDialogRef = {
     open: (options: { type: NameType; name: string }) => Promise<string | null>;
     close: () => void;
 };
 
 /** Rename dialog component */
-const RenameDialog: FC<{ ref: Ref<RenameDialogHandler> }> = ({ ref }) => {
+const RenameDialog: FC<{ ref: Ref<RenameDialogRef> }> = ({ ref }) => {
     /** States */
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<NameType>("collection");

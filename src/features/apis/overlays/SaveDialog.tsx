@@ -5,14 +5,14 @@ import * as Dialog from "@radix-ui/react-dialog";
 /** Action type */
 type Action = "dont_save" | "cancel" | "save";
 
-/** Save dialog handler type */
-export type SaveDialogHandler = {
+/** Save dialog ref type */
+export type SaveDialogRef = {
     open: () => Promise<Action>;
     close: () => void;
 };
 
 /** Save dialog component */
-const SaveDialog: FC<{ ref: Ref<SaveDialogHandler> }> = ({ ref }) => {
+const SaveDialog: FC<{ ref: Ref<SaveDialogRef> }> = ({ ref }) => {
     /** States */
     const [open, setOpen] = useState(false);
 
