@@ -1,6 +1,6 @@
 /** Imported modules */
 import { type FC, useRef, useState } from "react";
-import type { CollectionNode, RequestNode } from "../../utils/types.ts";
+import type { CollectionNode } from "../../utils/types.ts";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useCollectionStore } from "../../store/collection-store.ts";
 import { useRequestStore } from "../../store/request-store.ts";
@@ -11,7 +11,9 @@ import Folder from "./Folder.tsx";
 import { collectionAPI } from "../../api/collection-api.ts";
 import { useAlertDialog } from "../../../../shared/overlays/AlertDialogProvider.tsx";
 import { toast } from "sonner";
-import RenameDialog, { type RenameDialogHandler } from "../../overlays/RenameDialog.tsx";
+import RenameDialog, { type RenameDialogRef } from "../../overlays/RenameDialog.tsx";
+import { useTabStore } from "../../store/tab-store.ts";
+import { useResponseStore } from "../../store/response-store.ts";
 
 /** Collection component */
 const Collection: FC<{
@@ -19,25 +21,32 @@ const Collection: FC<{
     activeNodeId: string;
     setActiveNodeId: (nodeId: string) => void;
     collection: CollectionNode;
-    onOpen: (node: RequestNode) => void;
-}> = ({ nodeId, activeNodeId, setActiveNodeId, collection, onOpen }) => {
+}> = ({ nodeId, activeNodeId, setActiveNodeId, collection }) => {
     /** State */
     const [expanded, setExpanded] = useState(false);
 
     /** Rename dialog ref */
-    const renameDialogRef = useRef<RenameDialogHandler | null>(null);
+    const renameDialogRef = useRef<RenameDialogRef | null>(null);
 
     /** Alert dialog */
     const alertDialog = useAlertDialog();
 
     /** Collection store */
-    const addRequestToCollection = useCollectionStore((state) => state.addRequestToCollection);
-    const addFolder = useCollectionStore((state) => state.addFolder);
-    const renameCollection = useCollectionStore((state) => state.renameCollection);
-    const removeCollection = useCollectionStore((state) => state.removeCollection);
+    const addRequestNode = useCollectionStore((state) => state.addRequestNode);
+    const addFolderNode = useCollectionStore((state) => state.addFolderNode);
+    const renameCollectionNode = useCollectionStore((state) => state.renameCollectionNode);
+    const removeCollectionNode = useCollectionStore((state) => state.removeCollectionNode);
+
+    /** Tab store */
+    const addTab = useTabStore((state) => state.addTab);
+    const removeTabs = useTabStore((state) => state.removeTabs);
 
     /** Request store */
     const addRequest = useRequestStore((state) => state.addRequest);
+    const removeRequests = useRequestStore((state) => state.removeRequests);
+
+    /** Response store */
+    const removeResponses = useResponseStore((state) => state.removeResponses);
 
     /** Variables */
     const collectionId = collection._id;
@@ -63,12 +72,10 @@ const Collection: FC<{
                     body: { type: "none" as const, value: "" }
                 }
             });
+            addRequestNode(collectionId, null, requestNode);
             addRequest(request);
-            addRequestToCollection(collectionId, requestNode);
-
-            // Select the request
+            addTab(request._id);
             setActiveNodeId(`collection-${collectionId}-request-${requestNode._id}`);
-            onOpen(requestNode);
 
             toast.success("Request created successfully", { id: toastId });
         } catch {
@@ -81,7 +88,8 @@ const Collection: FC<{
         const toastId = toast.loading("Creating folder...");
         try {
             const folder = await collectionAPI.createFolder(collectionId, { name: "New Folder" });
-            addFolder(collectionId, folder);
+            addFolderNode(collectionId, folder);
+
             toast.success("Folder created successfully", { id: toastId });
         } catch {
             toast.error("Failed to create folder", { id: toastId });
@@ -101,7 +109,8 @@ const Collection: FC<{
         const toastId = toast.loading("Renaming collection...");
         try {
             await collectionAPI.renameCollection(collectionId, { newName });
-            renameCollection(collectionId, newName);
+            renameCollectionNode(collectionId, newName);
+
             toast.success("Collection renamed successfully", { id: toastId });
         } catch {
             toast.error("Failed to rename collection", { id: toastId });
@@ -122,8 +131,12 @@ const Collection: FC<{
 
         const toastId = toast.loading("Deleting collection...");
         try {
-            await collectionAPI.deleteCollection(collectionId);
-            removeCollection(collectionId);
+            const requestIds = await collectionAPI.deleteCollection(collectionId);
+            removeCollectionNode(collectionId);
+            removeTabs(requestIds);
+            removeRequests(requestIds);
+            removeResponses(requestIds);
+
             toast.success("Collection deleted successfully", { id: toastId });
         } catch {
             toast.error("Failed to delete collection", { id: toastId });
@@ -277,7 +290,6 @@ const Collection: FC<{
                             activeNodeId={activeNodeId}
                             setActiveNodeId={setActiveNodeId}
                             folder={child}
-                            onOpen={onOpen}
                         />
                     ) : (
                         <Request
@@ -287,7 +299,6 @@ const Collection: FC<{
                             activeNodeId={activeNodeId}
                             setActiveNodeId={setActiveNodeId}
                             request={child}
-                            onOpen={onOpen}
                         />
                     )
                 )}

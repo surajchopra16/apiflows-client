@@ -1,11 +1,10 @@
 /** Imported modules */
-import { type FC, useState } from "react";
-import type { RequestNode } from "../../utils/types.ts";
+import { useState } from "react";
 import { useCollectionStore } from "../../store/collection-store.ts";
 import Collection from "./Collection.tsx";
 
 /** Explorer component */
-const Explorer: FC<{ onOpen: (node: RequestNode) => void }> = ({ onOpen }) => {
+const Explorer = () => {
     /** Collection store */
     const collections = useCollectionStore((state) => state.collections);
 
@@ -21,7 +20,6 @@ const Explorer: FC<{ onOpen: (node: RequestNode) => void }> = ({ onOpen }) => {
                     activeNodeId={activeNodeId}
                     setActiveNodeId={setActiveNodeId}
                     collection={collection}
-                    onOpen={onOpen}
                 />
             ))}
         </div>
