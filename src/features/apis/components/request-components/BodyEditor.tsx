@@ -3,9 +3,9 @@ import { useState, useEffect, type FC } from "react";
 import { DropdownMenu } from "radix-ui";
 import { ChevronDown } from "lucide-react";
 import type { Body } from "../../utils/types.ts";
-import ReactCodeMirror from "@uiw/react-codemirror";
-import { githubLight } from "@uiw/codemirror-theme-github";
+import ReactCodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
+import { vscodeLightInit } from "@uiw/codemirror-theme-vscode";
 
 /** Props type */
 type Props = { body: Body; setBody: (body: Body) => void };
@@ -68,7 +68,9 @@ const BodyEditor: FC<Props> = ({ body, setBody }) => {
                             value={mode}
                             checked={mode === bodyMode}
                             onChange={() =>
-                                setBody({ ...body, type: mode === "none" ? "none" : "raw:text" })
+                                mode === "none"
+                                    ? setBody({ type: "none", value: "" })
+                                    : setBody({ type: "raw:text", value: "" })
                             }
                             className="h-3.5 w-3.5 border border-[#E6E6E6] text-blue-500 capitalize checked:border-none focus:ring-blue-500"
                         />
@@ -134,9 +136,27 @@ const BodyEditor: FC<Props> = ({ body, setBody }) => {
                     height="200px"
                     value={body.value}
                     onChange={(value) => setBody({ ...body, value })}
-                    theme={githubLight}
+                    theme={vscodeLightInit({
+                        settings: {
+                            background: "#FCFCFC",
+                            gutterBackground: "#FCFCFC",
+                            gutterBorder: "#FCFCFC",
+                            fontSize: "13px"
+                        }
+                    })}
+                    extensions={[
+                        EditorView.theme({
+                            "&.cm-focused": { outline: "none" },
+                            ".cm-gutters": { padding: "0 8px" }
+                        }),
+                        EditorView.lineWrapping
+                    ]}
+                    basicSetup={{
+                        highlightActiveLineGutter: false,
+                        highlightActiveLine: false
+                    }}
                     placeholder="Enter text here..."
-                    className="overflow-hidden rounded-lg ring ring-[#EBEBEB]"
+                    className="overflow-hidden rounded-lg border border-[#EBEBEB]"
                 />
             ) : body.type === "raw:json" ? (
                 <div className="space-y-2">
@@ -144,9 +164,27 @@ const BodyEditor: FC<Props> = ({ body, setBody }) => {
                         height="200px"
                         value={body.value}
                         onChange={(value) => setBody({ ...body, value })}
-                        theme={githubLight}
-                        extensions={[json()]}
-                        className="overflow-hidden rounded-lg ring ring-[#EBEBEB]"
+                        theme={vscodeLightInit({
+                            settings: {
+                                background: "#FCFCFC",
+                                gutterBackground: "#FCFCFC",
+                                gutterBorder: "#FCFCFC",
+                                fontSize: "13px"
+                            }
+                        })}
+                        extensions={[
+                            json(),
+                            EditorView.theme({
+                                "&.cm-focused": { outline: "none" },
+                                ".cm-gutters": { padding: "0 8px" }
+                            }),
+                            EditorView.lineWrapping
+                        ]}
+                        basicSetup={{
+                            highlightActiveLineGutter: false,
+                            highlightActiveLine: false
+                        }}
+                        className="overflow-hidden rounded-lg border border-[#EBEBEB]"
                     />
 
                     <div className="ml-0.5">

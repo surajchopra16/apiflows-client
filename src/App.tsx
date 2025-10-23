@@ -17,7 +17,7 @@ const App = () => {
         <BrowserRouter>
             <AlertDialogProvider>
                 {/* Toaster for notifications */}
-                <Toaster position="top-center" />
+                <Toaster position="top-right" />
 
                 {/* Routes */}
                 <Routes>

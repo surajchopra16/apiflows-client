@@ -1,8 +1,8 @@
 /** Imported modules */
-import type { Request, SerializedRequest } from "./types.ts";
+import type { Request, UpstreamRequest } from "./types.ts";
 
 /** Serialize the request */
-const serializeRequest = (request: Request): SerializedRequest => {
+const serializeRequest = (request: Request): UpstreamRequest => {
     // Serialize the query params
     const queryParams = request.queryParams.reduce(
         (acc, { enabled, key, value }) => {

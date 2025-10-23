@@ -35,8 +35,8 @@ export type Request = {
     body: Body;
 };
 
-/** Serialized request type */
-export type SerializedRequest = {
+/** Upstream request type */
+export type UpstreamRequest = {
     url: string;
     method: HttpMethod;
     queryParams: Record<string, string>;
@@ -45,5 +45,46 @@ export type SerializedRequest = {
     serializedCookieJar?: string;
 };
 
-/** Tab type */
-export type Tab = { _id: string; name: string; method: HttpMethod };
+/** Upstream response type */
+export type UpstreamResponse = {
+    statusCode: number;
+    statusMessage: string;
+    headers: Record<string, string>;
+    body: { encoding: string; type: string; value: string };
+    serializedCookieJar: string;
+    timings: {
+        wait: number;
+        dns: number;
+        tcp: number;
+        tls: number;
+        request: number;
+        firstByte: number;
+        download: number;
+        total: number;
+    };
+    size: number;
+};
+
+/** Request node type */
+export type RequestNode = {
+    _id: string;
+    name: string;
+    type: "request";
+    method: HttpMethod;
+};
+
+/** Folder node type */
+export type FolderNode = {
+    _id: string;
+    name: string;
+    type: "folder";
+    children: RequestNode[];
+};
+
+/** Collection node type */
+export type CollectionNode = {
+    _id: string;
+    name: string;
+    type: "collection";
+    children: (FolderNode | RequestNode)[];
+};
