@@ -2,59 +2,76 @@
 import { create } from "zustand/react";
 import type { CollectionNode, FolderNode, RequestNode } from "../utils/types.ts";
 
+/** Request node location type */
+type RequestNodeLocation = {
+    collectionId: string;
+    collectionName: string;
+    folderId: string | null;
+    folderName: string | null;
+};
+
+/** Request node updates type */
+type RequestNodeUpdates = Partial<Pick<RequestNode, "method" | "name">>;
+
 /** Collection store type */
 type CollectionStore = {
     collections: CollectionNode[];
-    setCollections: (collections: CollectionNode[]) => void;
-    addCollection: (collection: CollectionNode) => void;
-    renameCollection: (id: string, newName: string) => void;
-    removeCollection: (id: string) => void;
-    addFolder: (id: string, folder: FolderNode) => void;
-    renameFolder: (id: string, folderId: string, newName: string) => void;
-    removeFolder: (id: string, folderId: string) => void;
-    addRequestToCollection: (id: string, request: RequestNode) => void;
-    addRequestToFolder: (id: string, folderId: string, request: RequestNode) => void;
-    renameRequest: (id: string, requestId: string, newName: string) => void;
-    removeRequest: (id: string, requestId: string) => void;
+
+    // Collection node operations
+    setCollectionNodes: (collectionNodes: CollectionNode[]) => void;
+    addCollectionNode: (collectionNode: CollectionNode) => void;
+    renameCollectionNode: (id: string, newName: string) => void;
+    removeCollectionNode: (id: string) => void;
+
+    // Folder node operations
+    addFolderNode: (id: string, folderNode: FolderNode) => void;
+    renameFolderNode: (id: string, folderId: string, newName: string) => void;
+    removeFolderNode: (id: string, folderId: string) => void;
+
+    // Request node operations
+    getRequestNodeLocation: (requestId: string) => RequestNodeLocation | null;
+    addRequestNode: (id: string, folderId: string | null, requestNode: RequestNode) => void;
+    updateRequestNode: (id: string, requestId: string, updates: RequestNodeUpdates) => void;
+    removeRequestNode: (id: string, requestId: string) => void;
 };
 
 /** Collection store */
-export const useCollectionStore = create<CollectionStore>((set) => ({
+export const useCollectionStore = create<CollectionStore>((set, get) => ({
     collections: [],
 
-    /** Set all the collections */
-    setCollections: (collections) => set(() => ({ collections })),
+    /** Set all the collection nodes */
+    setCollectionNodes: (collectionNodes) => set(() => ({ collections: collectionNodes })),
 
-    /** Add a new collection */
-    addCollection: (collection) =>
-        set((state) => ({ collections: [...state.collections, collection] })),
+    /** Add a new collection node */
+    addCollectionNode: (collectionNode) =>
+        set((state) => ({ collections: [...state.collections, collectionNode] })),
 
-    /** Rename a collection */
-    renameCollection: (id, newName) =>
+    /** Rename a collection node */
+    renameCollectionNode: (id, newName) =>
         set((state) => ({
             collections: state.collections.map((collection) =>
                 collection._id === id ? { ...collection, name: newName } : collection
             )
         })),
 
-    /** Remove a collection */
-    removeCollection: (id) =>
+    /** Remove a collection node */
+    removeCollectionNode: (id) =>
         set((state) => ({
             collections: state.collections.filter((collection) => collection._id !== id)
         })),
 
-    /** Add a folder to a collection */
-    addFolder: (id, folder) =>
+    /** Add a new folder node */
+    addFolderNode: (id, folderNode) =>
         set((state) => ({
             collections: state.collections.map((collection) =>
                 collection._id === id
-                    ? { ...collection, children: [...collection.children, folder] }
+                    ? { ...collection, children: [...collection.children, folderNode] }
                     : collection
             )
         })),
 
-    /** Rename a folder in a collection */
-    renameFolder: (id, folderId, newName) =>
+    /** Rename a folder node */
+    renameFolderNode: (id, folderId, newName) =>
         set((state) => ({
             collections: state.collections.map((collection) =>
                 collection._id === id
@@ -70,8 +87,8 @@ export const useCollectionStore = create<CollectionStore>((set) => ({
             )
         })),
 
-    /** Remove a folder from a collection */
-    removeFolder: (id, folderId) =>
+    /** Remove a folder node */
+    removeFolderNode: (id, folderId) =>
         set((state) => ({
             collections: state.collections.map((collection) =>
                 collection._id === id
@@ -85,35 +102,56 @@ export const useCollectionStore = create<CollectionStore>((set) => ({
             )
         })),
 
-    /** Add a request to a collection */
-    addRequestToCollection: (id, request) =>
-        set((state) => ({
-            collections: state.collections.map((collection) =>
-                collection._id === id
-                    ? { ...collection, children: [...collection.children, request] }
-                    : collection
-            )
-        })),
+    /** Get the request node location (collectionId and folderId) */
+    getRequestNodeLocation: (requestId) => {
+        const { collections } = get();
 
-    /** Add a request to a folder in a collection */
-    addRequestToFolder: (id, folderId, request) =>
+        for (const collection of collections) {
+            for (const child of collection.children) {
+                if (child.type === "request" && child._id === requestId)
+                    return {
+                        collectionId: collection._id,
+                        collectionName: collection.name,
+                        folderId: null,
+                        folderName: null
+                    };
+
+                if (child.type === "folder")
+                    for (const req of child.children)
+                        if (req._id === requestId)
+                            return {
+                                collectionId: collection._id,
+                                collectionName: collection.name,
+                                folderId: child._id,
+                                folderName: child.name
+                            };
+            }
+        }
+
+        return null;
+    },
+
+    /** Add a request node */
+    addRequestNode: (id, folderId, requestNode) =>
         set((state) => ({
             collections: state.collections.map((collection) =>
                 collection._id === id
                     ? {
                           ...collection,
-                          children: collection.children.map((child) =>
-                              child.type === "folder" && child._id === folderId
-                                  ? { ...child, children: [...child.children, request] }
-                                  : child
-                          )
+                          children: folderId
+                              ? collection.children.map((child) =>
+                                    child.type === "folder" && child._id === folderId
+                                        ? { ...child, children: [...child.children, requestNode] }
+                                        : child
+                                )
+                              : [...collection.children, requestNode]
                       }
                     : collection
             )
         })),
 
-    /** Rename a request in a collection or folder */
-    renameRequest: (id, requestId, newName) =>
+    /** Update a request node */
+    updateRequestNode: (id, requestId, updates) =>
         set((state) => ({
             collections: state.collections.map((collection) =>
                 collection._id === id
@@ -122,15 +160,13 @@ export const useCollectionStore = create<CollectionStore>((set) => ({
                           children: collection.children.map((child) => {
                               // Request at root level
                               if (child.type === "request")
-                                  return child._id === requestId
-                                      ? { ...child, name: newName }
-                                      : child;
+                                  return child._id === requestId ? { ...child, ...updates } : child;
 
                               // Request inside folder
                               return {
                                   ...child,
                                   children: child.children.map((req) =>
-                                      req._id === requestId ? { ...req, name: newName } : req
+                                      req._id === requestId ? { ...req, ...updates } : req
                                   )
                               };
                           })
@@ -139,8 +175,8 @@ export const useCollectionStore = create<CollectionStore>((set) => ({
             )
         })),
 
-    /** Remove a request from a collection or folder */
-    removeRequest: (id, requestId) =>
+    /** Remove a request node */
+    removeRequestNode: (id, requestId) =>
         set((state) => ({
             collections: state.collections.map((collection) =>
                 collection._id === id
