@@ -14,7 +14,7 @@ import ResponsePanel, { type ResponsePanelRef } from "./ResponsePanel.tsx";
 import { validateRequest } from "../utils/request-validator.ts";
 import { serializeRequest } from "../utils/request-serializer.ts";
 import type { HttpMethod } from "../utils/types.ts";
-import { sendUpstreamRequest } from "../api/cloud-agent-api.ts";
+import { cloudAgentAPI } from "../api/cloud-agent-api.ts";
 import { useResponseStore } from "../store/response-store.ts";
 import { METHOD_COLORS } from "../utils/data.ts";
 import { useCollectionStore } from "../store/collection-store.ts";
@@ -106,7 +106,10 @@ const RequestBuilder = () => {
         const controller = new AbortController();
         addLoadingResponse(request._id, controller);
         try {
-            const response = await sendUpstreamRequest(serializedRequest, controller.signal);
+            const response = await cloudAgentAPI.sendUpstreamRequest(
+                serializedRequest,
+                controller.signal
+            );
             addSuccessResponse(request._id, response);
         } catch {
             addErrorResponse(request._id, "Failed to fetch request");

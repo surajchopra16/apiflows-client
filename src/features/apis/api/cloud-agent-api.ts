@@ -7,7 +7,7 @@ const BASE_URL = "http://localhost:8080";
 /** Send the upstream request */
 const sendUpstreamRequest = async (
     request: UpstreamRequest,
-    signal: AbortSignal
+    signal?: AbortSignal
 ): Promise<UpstreamResponse> => {
     try {
         const response = await fetch(`${BASE_URL}/api/v1/cloud-agent/request`, {
@@ -27,4 +27,4 @@ const sendUpstreamRequest = async (
     }
 };
 
-export { sendUpstreamRequest };
+export const cloudAgentAPI = { sendUpstreamRequest };

@@ -32,7 +32,7 @@ export default tseslint.config([
                 }
             ],
             "@typescript-eslint/no-explicit-any": "warn",
-            "react-refresh/only-export-components": "warn"
+            "react-refresh/only-export-components": "off"
         }
     }
 ]);
