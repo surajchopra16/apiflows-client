@@ -10,6 +10,19 @@
 @theme {
     --font-sans: "Inter", "sans-serif";
     --radius-10: 10px;
+
+    --animate-gray-ring-pulse: gray-ring-pulse 1s ease-in-out infinite;
+    @keyframes gray-ring-pulse {
+        0% {
+            box-shadow: 0 0 0 2px oklch(80.9% 0.105 251.813 / 80%);
+        }
+        50% {
+            box-shadow: 0 0 0 6px oklch(80.9% 0.105 251.813 / 80%);
+        }
+        100% {
+            box-shadow: 0 0 0 2px oklch(80.9% 0.105 251.813 / 80%);
+        }
+    }
 }
 
 /* Hide scrollbar for all browsers */
