@@ -1,31 +1,18 @@
+/** Imported modules */
 import React, { useState, useRef, useLayoutEffect } from "react";
 import { Plus, ZoomIn, ZoomOut, MoveHorizontal, Play } from "lucide-react";
-import PipelineNode from "./PipelineNode.tsx";
-import StartNode from "./StartNode.tsx";
+import type { Connector, Node } from "../utils/types.ts";
+import { StartNode } from "./StartNode.tsx";
+import { HttpRequestNode } from "./HttpRequestNode.tsx";
+import { createWorkflowJSON, runner } from "../utils/runner.ts";
 
-/** Node type */
-type Node = {
-    id: string;
-    type: string;
-    position: { x: number; y: number };
-    data: Record<string, any>;
+/** Node component registry */
+const nodeComponentRegistry: Record<string, React.FC<any>> = {
+    "start": StartNode,
+    "http-request": HttpRequestNode
 };
 
-/** Connector type */
-type Connector = {
-    id: string;
-    source: string;
-    sourcePort: string;
-    target: string;
-    targetPort: string;
-};
-
-/** Node registry to map node types to components */
-const nodeRegistry: Record<string, any> = {
-    start: StartNode,
-    pipeline: PipelineNode
-};
-
+/** Editor component */
 const Editor = () => {
     /** Canvas position and scale */
     const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -33,16 +20,69 @@ const Editor = () => {
 
     /** Nodes */
     const [nodes, setNodes] = useState<Node[]>([
-        { id: "1", type: "start", position: { x: 50, y: 200 }, data: {} },
-        { id: "2", type: "pipeline", position: { x: 450, y: 100 }, data: {} },
-        { id: "3", type: "pipeline", position: { x: 450, y: 300 }, data: {} }
+        { id: "1", type: "start", position: { x: 0, y: 300 }, parameters: {} },
+        {
+            id: "2",
+            type: "http-request",
+            position: { x: 500, y: 100 },
+            parameters: { name: "", method: "", requestId: null }
+        },
+        {
+            id: "3",
+            type: "http-request",
+            position: { x: 500, y: 400 },
+            parameters: { name: "", method: "", requestId: null }
+        },
+        {
+            id: "4",
+            type: "http-request",
+            position: { x: 1000, y: 100 },
+            parameters: { name: "", method: "", requestId: null }
+        },
+        {
+            id: "5",
+            type: "http-request",
+            position: { x: 1000, y: 400 },
+            parameters: { name: "", method: "", requestId: null }
+        }
     ]);
 
     /** Connectors */
     const [connectors, setConnectors] = useState<Connector[]>([
-        { id: "1:1->2:1", source: "1", sourcePort: "1", target: "2", targetPort: "1" },
-        { id: "1:1->3:1", source: "1", sourcePort: "1", target: "3", targetPort: "1" }
+        {
+            id: "1:start->2:send",
+            source: "1",
+            sourcePort: "start",
+            target: "2",
+            targetPort: "send"
+        },
+        {
+            id: "1:start->3:send",
+            source: "1",
+            sourcePort: "start",
+            target: "3",
+            targetPort: "send"
+        },
+        {
+            id: "2:success->4:send",
+            source: "2",
+            sourcePort: "success",
+            target: "4",
+            targetPort: "send"
+        },
+        {
+            id: "2:fail->5:send",
+            source: "2",
+            sourcePort: "fail",
+            target: "5",
+            targetPort: "send"
+        }
     ]);
+
+    /** Node execution status */
+    const [nodeStatus, setNodeStatus] = useState<
+        Record<string, "running" | "completed" | "failed">
+    >({});
 
     /** Refs */
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -109,6 +149,17 @@ const Editor = () => {
         setPosition(newPosition);
     };
 
+    /** Handle running the workflow */
+    const handleRun = async () => {
+        setNodeStatus({});
+
+        const workflow = createWorkflowJSON("Untitled Workflow", nodes, connectors);
+        await runner(workflow, (data) => {
+            console.log("Node Status Change:", data);
+            setNodeStatus((prev) => ({ ...prev, [data.nodeId]: data.status }));
+        });
+    };
+
     /** Convert the screen coordinates to canvas coordinates */
     const convertToCanvasPosition = (x: number, y: number) => {
         const canvas = canvasRef.current;
@@ -162,16 +213,15 @@ const Editor = () => {
     /** Handle the linking of connectors */
     const handleConnectorLink = (
         event: React.PointerEvent<HTMLDivElement>,
-        node: HTMLElement,
+        sourceNode: HTMLElement,
         outputPort: Element
     ) => {
-        const controller = new AbortController();
-        const signal = controller.signal;
-
         event.preventDefault();
+        const controller = new AbortController();
 
-        const nodeId = node.getAttribute("data-node-id") as string;
-        const outputPortId = outputPort.getAttribute("data-output-port-id") as string;
+        const sourceNodeId = sourceNode.getAttribute("data-node-id");
+        const outputPortId = outputPort.getAttribute("data-output-port-id");
+        if (!sourceNodeId || !outputPortId) return;
 
         const sourcePos = getElementPosition(outputPort);
         const targetPos = convertToCanvasPosition(event.clientX, event.clientY);
@@ -195,44 +245,57 @@ const Editor = () => {
             controller.abort();
 
             const target = upEvent.target as HTMLElement;
+
             const targetNode = target.closest(".node");
             const inputPort = target.closest(".input-port");
+            if (!targetNode || !inputPort) return;
 
-            if (targetNode && inputPort) {
-                const targetNodeId = targetNode.getAttribute("data-node-id");
-                const inputPortId = inputPort.getAttribute("data-input-port-id");
+            const targetNodeId = targetNode.getAttribute("data-node-id");
+            const inputPortId = inputPort.getAttribute("data-input-port-id");
+            if (!targetNodeId || !inputPortId) return;
 
-                if (targetNodeId && nodeId !== targetNodeId && inputPortId) {
-                    const newConnectorId = `${nodeId}:${outputPortId}->${targetNodeId}:${inputPortId}`;
-                    if (!connectors.some((c) => c.id === newConnectorId)) {
-                        setConnectors((prev) => [
-                            ...prev,
-                            {
-                                id: newConnectorId,
-                                source: nodeId,
-                                sourcePort: outputPortId,
-                                target: targetNodeId,
-                                targetPort: inputPortId
-                            }
-                        ]);
-                    }
+            // Prevent the self-loop connection of a node
+            if (sourceNodeId === targetNodeId) return;
+
+            // Prevent the multiple connectors to the same input port (Prevent FAN-IN) (Allow FAN-OUT)
+            if (connectors.some((c) => c.target === targetNodeId && c.targetPort === inputPortId))
+                return;
+
+            // Prevent the duplicate connectors
+            const id = `${sourceNodeId}:${outputPortId}->${targetNodeId}:${inputPortId}`;
+            if (connectors.some((c) => c.id === id)) return;
+
+            setConnectors((prev) => [
+                ...prev,
+                {
+                    id: id,
+                    source: sourceNodeId,
+                    sourcePort: outputPortId,
+                    target: targetNodeId,
+                    targetPort: inputPortId
                 }
-            }
+            ]);
         };
 
-        window.addEventListener("pointermove", handlePointerMove, { signal });
-        window.addEventListener("pointerup", handlePointerUp, { signal });
-        window.addEventListener("pointercancel", handlePointerUp, { signal });
+        window.addEventListener("pointermove", handlePointerMove, {
+            signal: controller.signal
+        });
+        window.addEventListener("pointerup", handlePointerUp, {
+            signal: controller.signal
+        });
+        window.addEventListener("pointercancel", handlePointerUp, {
+            signal: controller.signal
+        });
     };
 
     /** Handle the movement of a node */
     const handleNodeMove = (event: React.PointerEvent<HTMLDivElement>, node: HTMLElement) => {
-        const controller = new AbortController();
-        const signal = controller.signal;
-
         event.preventDefault();
+        const controller = new AbortController();
 
-        const nodeId = node.getAttribute("data-node-id") as string;
+        const nodeId = node.getAttribute("data-node-id");
+        if (!nodeId) return;
+
         const nodeValue = nodes.find((n) => n.id === nodeId);
         if (!nodeValue) return;
 
@@ -302,17 +365,21 @@ const Editor = () => {
             );
         };
 
-        window.addEventListener("pointermove", handlePointerMove, { signal });
-        window.addEventListener("pointerup", handlePointerUp, { signal });
-        window.addEventListener("pointercancel", handlePointerUp, { signal });
+        window.addEventListener("pointermove", handlePointerMove, {
+            signal: controller.signal
+        });
+        window.addEventListener("pointerup", handlePointerUp, {
+            signal: controller.signal
+        });
+        window.addEventListener("pointercancel", handlePointerUp, {
+            signal: controller.signal
+        });
     };
 
     /** Handle the panning of the canvas */
     const handleCanvasPan = (event: React.PointerEvent<HTMLDivElement>) => {
-        const controller = new AbortController();
-        const signal = controller.signal;
-
         event.preventDefault();
+        const controller = new AbortController();
 
         const startPointer = { clientX: event.clientX, clientY: event.clientY };
         const startPos = { ...position };
@@ -338,9 +405,15 @@ const Editor = () => {
             setPosition({ x: startPos.x + dx, y: startPos.y + dy });
         };
 
-        window.addEventListener("pointermove", handlePointerMove, { signal });
-        window.addEventListener("pointerup", handlePointerUp, { signal });
-        window.addEventListener("pointercancel", handlePointerUp, { signal });
+        window.addEventListener("pointermove", handlePointerMove, {
+            signal: controller.signal
+        });
+        window.addEventListener("pointerup", handlePointerUp, {
+            signal: controller.signal
+        });
+        window.addEventListener("pointercancel", handlePointerUp, {
+            signal: controller.signal
+        });
     };
 
     /** Handle a pointer down on the canvas */
@@ -372,7 +445,7 @@ const Editor = () => {
                 data-connector-id={connector.id}
                 onPointerDown={(ev) => ev.stopPropagation()}
                 className="cursor-pointer">
-                <path d={d} className="fill-none stroke-blue-400/60" strokeWidth={2} />
+                <path d={d} className="fill-none stroke-blue-300" strokeWidth={2} />
                 <path
                     d={d}
                     strokeWidth={18}
@@ -409,7 +482,7 @@ const Editor = () => {
                     {/* Temporary Connector */}
                     <path
                         ref={tempConnectorRef}
-                        className="pointer-events-none fill-none stroke-blue-400/50"
+                        className="pointer-events-none fill-none stroke-blue-300"
                         strokeWidth={2}
                         strokeDasharray="4 4"
                         style={{ display: "none" }}
@@ -418,14 +491,35 @@ const Editor = () => {
 
                 {/* Nodes */}
                 {nodes.map((node) => {
-                    const Component = nodeRegistry[node.type];
+                    const Component = nodeComponentRegistry[node.type];
+                    const status = nodeStatus[node.id] ?? null;
+
+                    const ringClass =
+                        status === "running"
+                            ? "animate-gray-ring-pulse"
+                            : status === "completed"
+                              ? "ring-6 ring-[#E6E6E6]/80"
+                              : status === "failed"
+                                ? "ring-6 ring-rose-200/70"
+                                : "ring-1 ring-[#EBEBEB]";
+
                     return (
-                        <Component
+                        <div
                             key={node.id}
-                            id={node.id}
-                            position={node.position}
-                            data={node.data}
-                        />
+                            data-node-id={node.id}
+                            style={{ top: node.position.y, left: node.position.x }}
+                            className={`node rounded-10 absolute shadow-sm hover:shadow-md ${ringClass} select-none`}>
+                            <Component
+                                parameters={node.parameters}
+                                setParameters={(parameters: any) => {
+                                    setNodes((nodes) =>
+                                        nodes.map((n) =>
+                                            n.id === node.id ? { ...n, parameters } : n
+                                        )
+                                    );
+                                }}
+                            />
+                        </div>
                     );
                 })}
             </div>
@@ -462,7 +556,8 @@ const Editor = () => {
                     {/* Run */}
                     <button
                         title="Run Flow"
-                        className="rounded-10 inline-flex h-8 items-center justify-center gap-1.5 bg-blue-600/90 px-3.5 text-xs font-medium text-white transition focus:outline-none active:scale-95">
+                        className="rounded-10 inline-flex h-8 items-center justify-center gap-1.5 bg-blue-600/90 px-3.5 text-xs font-medium text-white transition focus:outline-none active:scale-95"
+                        onClick={handleRun}>
                         <Play size={14} />
                         Run
                     </button>
