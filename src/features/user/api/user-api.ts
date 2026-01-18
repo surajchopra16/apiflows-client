@@ -13,6 +13,7 @@ const login = async (data: UserData): Promise<UserResponse> => {
         const response = await fetch(`${BASE_URL}/api/v1/users/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data)
         });
         const result = await response.json();
@@ -32,6 +33,7 @@ const signup = async (data: UserData): Promise<UserResponse> => {
         const response = await fetch(`${BASE_URL}/api/v1/users/signup`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data)
         });
         const result = await response.json();

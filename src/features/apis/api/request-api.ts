@@ -9,7 +9,8 @@ const getRequest = async (requestId: string): Promise<Request> => {
     try {
         const response = await fetch(`${BASE_URL}/api/v1/requests/${requestId}`, {
             method: "GET",
-            headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
         });
         const result = await response.json();
 
@@ -32,6 +33,7 @@ const createRequest = async (data: {
         const response = await fetch(`${BASE_URL}/api/v1/requests`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data)
         });
         const result = await response.json();
@@ -54,6 +56,7 @@ const updateRequest = async (
         const response = await fetch(`${BASE_URL}/api/v1/requests/${requestId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data)
         });
         const result = await response.json();
@@ -78,7 +81,8 @@ const deleteRequest = async (
 
         const response = await fetch(url, {
             method: "DELETE",
-            headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
         });
         const result = await response.json();
 

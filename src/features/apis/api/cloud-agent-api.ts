@@ -13,6 +13,7 @@ const sendUpstreamRequest = async (
         const response = await fetch(`${BASE_URL}/api/v1/cloud-agent/request`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(request),
             signal
         });

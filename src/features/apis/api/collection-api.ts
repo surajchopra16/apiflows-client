@@ -13,7 +13,8 @@ const getCollections = async (): Promise<CollectionNode[]> => {
     try {
         const response = await fetch(`${BASE_URL}/api/v1/collections`, {
             method: "GET",
-            headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
         });
         const result = await response.json();
 
@@ -32,6 +33,7 @@ const createCollection = async (collection: { name: string }): Promise<Collectio
         const response = await fetch(`${BASE_URL}/api/v1/collections`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(collection)
         });
         const result = await response.json();
@@ -51,6 +53,7 @@ const renameCollection = async (collectionId: string, update: { newName: string 
         const response = await fetch(`${BASE_URL}/api/v1/collections/${collectionId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(update)
         });
         const result = await response.json();
@@ -67,7 +70,8 @@ const deleteCollection = async (collectionId: string): Promise<string[]> => {
     try {
         const response = await fetch(`${BASE_URL}/api/v1/collections/${collectionId}`, {
             method: "DELETE",
-            headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
         });
         const result = await response.json();
 
@@ -93,6 +97,7 @@ const createFolder = async (
         const response = await fetch(`${BASE_URL}/api/v1/collections/${collectionId}/folders`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(folder)
         });
         const result = await response.json();
@@ -118,6 +123,7 @@ const renameFolder = async (
             {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(update)
             }
         );
@@ -135,7 +141,11 @@ const deleteFolder = async (collectionId: string, folderId: string): Promise<str
     try {
         const response = await fetch(
             `${BASE_URL}/api/v1/collections/${collectionId}/folders/${folderId}`,
-            { method: "DELETE", headers: { "Content-Type": "application/json" } }
+            {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include"
+            }
         );
         const result = await response.json();
 
