@@ -29,11 +29,8 @@ export const LoadingOverlayProvider: FC<{ children: ReactNode }> = ({ children }
 
             {/* Loading Overlay */}
             {isLoading && (
-                <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm duration-200">
-                    <div className="animate-in zoom-in-95 flex flex-col items-center gap-4 rounded-2xl bg-white p-8 shadow-2xl duration-200">
-                        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-                        <p className="text-sm font-medium text-gray-700">Loading...</p>
-                    </div>
+                <div className="animate-in fade-in fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-white/80 backdrop-blur-sm duration-200">
+                    <Loader2 className="h-12 w-12 animate-spin text-gray-950" />
                 </div>
             )}
         </LoadingOverlayContext.Provider>

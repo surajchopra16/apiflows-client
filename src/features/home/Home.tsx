@@ -124,7 +124,7 @@ const Home = () => {
                         <Link
                             to="/signup"
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-7 py-3.5 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl">
-                            Get started free
+                            Get Started Free
                             <svg
                                 width="20"
                                 height="20"

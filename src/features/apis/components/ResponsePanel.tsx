@@ -11,6 +11,18 @@ import { html } from "@codemirror/lang-html";
 /** Response panel ref type */
 export type ResponsePanelRef = { open: () => void; close: () => void };
 
+/** Cookie type */
+type Cookie = {
+    name?: string;
+    key?: string;
+    value: string;
+    path?: string;
+    httpOnly?: boolean;
+    secure?: boolean;
+    domain?: string;
+    expires?: string;
+};
+
 /** Props type */
 type Props = { ref: Ref<ResponsePanelRef>; response: ResponseState | undefined };
 
@@ -84,11 +96,27 @@ const ResponsePanel: FC<Props> = ({ ref, response }) => {
         document.addEventListener("pointerup", handlePointerUp, { signal: controller.signal });
     };
 
-    /** TODO: Replace with real cookies from response */
-    const dummyCookies = [
-        { name: "sessionId", value: "abcd1234", path: "/", httpOnly: true },
-        { name: "prefs", value: "lang=en", path: "/" }
-    ];
+    /** Parse the cookies from the serializedCookieJar */
+    const parseCookies = (): Cookie[] => {
+        if (!response?.data?.serializedCookieJar) return [];
+
+        try {
+            const cookieJar = JSON.parse(response.data.serializedCookieJar);
+
+            // Handle the different possible cookie jar formats
+            if (Array.isArray(cookieJar)) return cookieJar;
+            else if (cookieJar.cookies && Array.isArray(cookieJar.cookies))
+                return cookieJar.cookies;
+            else if (typeof cookieJar === "object")
+                return Object.values(cookieJar).flat() as Cookie[];
+            else return [];
+        } catch (error) {
+            console.error("Error parsing cookie jar:", error);
+            return [];
+        }
+    };
+
+    const cookies = parseCookies();
 
     return (
         <div
@@ -316,17 +344,37 @@ const ResponsePanel: FC<Props> = ({ ref, response }) => {
                     {/* Cookies tab */}
                     {activeTab === "cookies" && (
                         <div className="min-h-0 flex-1 overflow-y-auto p-5">
-                            <ul className="space-y-2 text-sm text-gray-700">
-                                {dummyCookies.map((cookie) => (
-                                    <li key={cookie.name}>
-                                        <span className="font-medium">{cookie.name}</span>:{" "}
-                                        {cookie.value}{" "}
-                                        <span className="text-xs text-gray-500">
-                                            {cookie.httpOnly ? "(HttpOnly)" : ""}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>{" "}
+                            {cookies.length === 0 ? (
+                                <div className="flex h-32 items-center justify-center text-sm font-normal text-gray-500">
+                                    No cookies in this response
+                                </div>
+                            ) : (
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    {cookies.map((cookie: Cookie, index: number) => (
+                                        <li key={index}>
+                                            <span className="font-medium">
+                                                {cookie.name || cookie.key}
+                                            </span>
+                                            : {cookie.value}{" "}
+                                            {cookie.path && (
+                                                <span className="text-xs text-gray-500">
+                                                    (Path: {cookie.path})
+                                                </span>
+                                            )}{" "}
+                                            {cookie.httpOnly && (
+                                                <span className="text-xs text-gray-500">
+                                                    (HttpOnly)
+                                                </span>
+                                            )}{" "}
+                                            {cookie.secure && (
+                                                <span className="text-xs text-gray-500">
+                                                    (Secure)
+                                                </span>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
                     )}
 
