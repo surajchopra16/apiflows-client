@@ -1,10 +1,11 @@
 /** Imported modules */
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useState, useEffect } from "react";
 import { ArrowRight, Lock, Mail, Zap, Eye, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router";
 import { userAPI } from "../api/user-api.ts";
 import { useLoadingOverlay } from "../../../shared/overlays/LoadingOverlayProvider.tsx";
 import { toast } from "sonner";
+import { useUserStore } from "../store/user-store.ts";
+import { Link, useNavigate } from "react-router";
 
 /** Signup component */
 const Signup = () => {
@@ -16,7 +17,13 @@ const Signup = () => {
 
     /** Hooks */
     const navigate = useNavigate();
+    const { user, setUser } = useUserStore();
     const { showLoading, hideLoading } = useLoadingOverlay();
+
+    /** Redirect to the dashboard if the user is already logged in */
+    useEffect(() => {
+        if (user) navigate("/apis");
+    }, [navigate, user]);
 
     /** Handle the signup */
     const handleSignup = async (event: FormEvent) => {
@@ -37,9 +44,9 @@ const Signup = () => {
 
         showLoading();
         try {
-            await userAPI.signup({ email: trimmedEmail, password: trimmedPassword });
+            const user = await userAPI.signup({ email: trimmedEmail, password: trimmedPassword });
+            setUser({ _id: user._id, email: user.email });
             toast.success("Account created successfully");
-
             navigate("/apis");
         } catch (err) {
             const message = err instanceof Error ? err.message : "Failed to signup";
@@ -176,11 +183,11 @@ const Signup = () => {
                     {/* Login link */}
                     <div className="mt-7 text-center text-sm font-normal text-gray-500">
                         Already have an account?{" "}
-                        <a
-                            href="/login"
+                        <Link
+                            to="/login"
                             className="font-semibold text-blue-600 transition-colors hover:underline">
                             Log in
-                        </a>
+                        </Link>
                     </div>
                 </div>
 

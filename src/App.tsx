@@ -10,9 +10,23 @@ import Flow from "./features/flow/Flow.tsx";
 import { Toaster } from "sonner";
 import { AlertDialogProvider } from "./shared/overlays/AlertDialogProvider.tsx";
 import { LoadingOverlayProvider } from "./shared/overlays/LoadingOverlayProvider.tsx";
+import { useEffect } from "react";
+import { useUserStore } from "./features/user/store/user-store.ts";
+import { userAPI } from "./features/user/api/user-api.ts";
 
 /** App component */
 const App = () => {
+    /** Hooks */
+    const { setUser } = useUserStore();
+
+    /** Fetch the user status on app mount */
+    useEffect(() => {
+        userAPI
+            .status()
+            .then((user) => setUser(user))
+            .catch(() => setUser(null));
+    }, [setUser]);
+
     return (
         <BrowserRouter>
             <AlertDialogProvider>

@@ -1,3 +1,6 @@
+/** Imported modules */
+import type { CurrentUser } from "../store/user-store.ts";
+
 /** Base URL for the API */
 const BASE_URL = "http://localhost:8080";
 
@@ -6,6 +9,29 @@ type UserData = { email: string; password: string };
 
 /** User response type */
 type UserResponse = { _id: string; email: string; createdAt: string };
+
+/**
+ * ==================== User API ====================>
+ */
+
+/** Get the current user status */
+const status = async (): Promise<CurrentUser> => {
+    try {
+        const response = await fetch(`${BASE_URL}/api/v1/users/status`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || "Failed to get user status");
+
+        return result.data.user as CurrentUser;
+    } catch (err) {
+        console.error("Error getting user status:", err);
+        return null;
+    }
+};
 
 /** Login the user */
 const login = async (data: UserData): Promise<UserResponse> => {
@@ -47,4 +73,4 @@ const signup = async (data: UserData): Promise<UserResponse> => {
     }
 };
 
-export const userAPI = { login, signup };
+export const userAPI = { status, login, signup };

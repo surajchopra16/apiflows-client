@@ -1,10 +1,11 @@
 /** Imported modules */
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useState, useEffect } from "react";
 import { ArrowRight, Lock, Mail, Zap, Eye, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router";
 import { userAPI } from "../api/user-api.ts";
 import { useLoadingOverlay } from "../../../shared/overlays/LoadingOverlayProvider.tsx";
 import { toast } from "sonner";
+import { useUserStore } from "../store/user-store.ts";
+import { Link, useNavigate } from "react-router";
 
 /** Login component */
 const Login = () => {
@@ -16,7 +17,13 @@ const Login = () => {
 
     /** Hooks */
     const navigate = useNavigate();
+    const { user, setUser } = useUserStore();
     const { showLoading, hideLoading } = useLoadingOverlay();
+
+    /** Redirect to the dashboard if the user is already logged in */
+    useEffect(() => {
+        if (user) navigate("/apis");
+    }, [navigate, user]);
 
     /** Handle the login */
     const handleLogin = async (event: FormEvent) => {
@@ -37,9 +44,9 @@ const Login = () => {
 
         showLoading();
         try {
-            await userAPI.login({ email: trimmedEmail, password: trimmedPassword });
+            const user = await userAPI.login({ email: trimmedEmail, password: trimmedPassword });
+            setUser({ _id: user._id, email: user.email });
             toast.success("Logged in successfully");
-
             navigate("/apis");
         } catch (err) {
             const message = err instanceof Error ? err.message : "Failed to login";
@@ -166,11 +173,11 @@ const Login = () => {
                     {/* Signup link */}
                     <div className="mt-7 text-center text-sm font-normal text-gray-500">
                         Don't have an account?{" "}
-                        <a
-                            href="/signup"
+                        <Link
+                            to="/signup"
                             className="font-semibold text-blue-600 transition-colors hover:underline">
                             Sign up
-                        </a>
+                        </Link>
                     </div>
                 </div>
 
