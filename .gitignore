@@ -1,2 +1,11 @@
+# IDE files
 .idea
+
+# Node modules
 node_modules
+
+# Build output
+.dist
+
+# Environment variables
+.env

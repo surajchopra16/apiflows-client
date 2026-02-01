@@ -1,8 +1,6 @@
 /** Imported modules */
 import type { UpstreamRequest, UpstreamResponse } from "../utils/types.ts";
-
-/** Base URL for the API */
-const BASE_URL = "http://localhost:8080";
+import { env } from "../../../../env.ts";
 
 /** Send the upstream request */
 const sendUpstreamRequest = async (
@@ -10,7 +8,7 @@ const sendUpstreamRequest = async (
     signal?: AbortSignal
 ): Promise<UpstreamResponse> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/cloud-agent/request`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/cloud-agent/request`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

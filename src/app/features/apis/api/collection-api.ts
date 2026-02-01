@@ -1,8 +1,6 @@
 /** Imported modules */
 import type { CollectionNode, FolderNode } from "../utils/types.ts";
-
-/** Base URL for the API */
-const BASE_URL = "http://localhost:8080";
+import { env } from "../../../../env.ts";
 
 /**
  * ==================== Collection ====================>
@@ -11,7 +9,7 @@ const BASE_URL = "http://localhost:8080";
 /** Get the collections */
 const getCollections = async (): Promise<CollectionNode[]> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/collections`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/collections`, {
             method: "GET",
             headers: { "Content-Type": "application/json" },
             credentials: "include"
@@ -30,7 +28,7 @@ const getCollections = async (): Promise<CollectionNode[]> => {
 /** Create a new collection */
 const createCollection = async (collection: { name: string }): Promise<CollectionNode> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/collections`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/collections`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -50,7 +48,7 @@ const createCollection = async (collection: { name: string }): Promise<Collectio
 /** Rename an existing collection */
 const renameCollection = async (collectionId: string, update: { newName: string }) => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/collections/${collectionId}`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/collections/${collectionId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -68,7 +66,7 @@ const renameCollection = async (collectionId: string, update: { newName: string 
 /** Delete a collection */
 const deleteCollection = async (collectionId: string): Promise<string[]> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/collections/${collectionId}`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/collections/${collectionId}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             credentials: "include"
@@ -94,7 +92,7 @@ const createFolder = async (
     folder: { name: string }
 ): Promise<FolderNode> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/collections/${collectionId}/folders`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/collections/${collectionId}/folders`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -119,7 +117,7 @@ const renameFolder = async (
 ) => {
     try {
         const response = await fetch(
-            `${BASE_URL}/api/v1/collections/${collectionId}/folders/${folderId}`,
+            `${env.HOST_URL}/api/v1/collections/${collectionId}/folders/${folderId}`,
             {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -140,7 +138,7 @@ const renameFolder = async (
 const deleteFolder = async (collectionId: string, folderId: string): Promise<string[]> => {
     try {
         const response = await fetch(
-            `${BASE_URL}/api/v1/collections/${collectionId}/folders/${folderId}`,
+            `${env.HOST_URL}/api/v1/collections/${collectionId}/folders/${folderId}`,
             {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },

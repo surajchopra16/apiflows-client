@@ -570,7 +570,7 @@
 //     );
 // }
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Play, Copy, Zap, BookOpen, Layers, Terminal } from "lucide-react";
 
 // OverviewTabVertical.jsx
@@ -631,10 +631,10 @@ const FEATURES = [
     }
 ];
 
-export default function Overview({ onCreateRequest = () => {} }) {
+export default function Overview() {
     const [copied, setCopied] = useState(false);
     const [running, setRunning] = useState(false);
-    const [result, setResult] = useState(null);
+    const [result, setResult] = useState<any>(null);
 
     useEffect(() => {
         if (!copied) return;

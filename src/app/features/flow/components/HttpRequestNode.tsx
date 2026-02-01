@@ -1,9 +1,9 @@
 /** Imported modules */
 import { type FC, useEffect, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { collectionAPI } from "../../apis/api/collection-api";
-import { METHOD_COLORS } from "../../apis/utils/data";
-import type { CollectionNode, FolderNode, RequestNode } from "../../apis/utils/types";
+import { collectionAPI } from "../../apis/api/collection-api.ts";
+import { METHOD_COLORS } from "../../apis/utils/data.ts";
+import type { CollectionNode, FolderNode, RequestNode } from "../../apis/utils/types.ts";
 import type { NodeProps, NodeSpec } from "../utils/types.ts";
 import { requestAPI } from "../../apis/api/request-api.ts";
 import { serializeRequest } from "../../apis/utils/request-serializer.ts";

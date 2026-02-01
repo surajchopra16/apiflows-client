@@ -1,13 +1,11 @@
 /** Imported modules */
 import type { Request, RequestNode } from "../utils/types.ts";
-
-/** Base URL for the API */
-const BASE_URL = "http://localhost:8080";
+import { env } from "../../../../env.ts";
 
 /** Get a request by ID */
 const getRequest = async (requestId: string): Promise<Request> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/requests/${requestId}`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/requests/${requestId}`, {
             method: "GET",
             headers: { "Content-Type": "application/json" },
             credentials: "include"
@@ -30,7 +28,7 @@ const createRequest = async (data: {
     request: Omit<Request, "_id">;
 }): Promise<{ request: Request; requestNode: RequestNode }> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/requests`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/requests`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -53,7 +51,7 @@ const updateRequest = async (
     data: { collectionId: string; folderId: string | null; updates: Partial<Omit<Request, "_id">> }
 ): Promise<void> => {
     try {
-        const response = await fetch(`${BASE_URL}/api/v1/requests/${requestId}`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/requests/${requestId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -74,7 +72,7 @@ const deleteRequest = async (
     data: { collectionId: string; folderId: string | null }
 ): Promise<void> => {
     try {
-        const url = new URL(`${BASE_URL}/api/v1/requests/${requestId}`);
+        const url = new URL(`${env.HOST_URL}/api/v1/requests/${requestId}`);
 
         url.searchParams.append("collectionId", data.collectionId);
         if (data.folderId) url.searchParams.append("folderId", data.folderId);
