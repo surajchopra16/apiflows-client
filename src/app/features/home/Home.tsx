@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import { useState } from "react";
+import appWireframe from "../../../assets/images/app-wireframe.png";
 
 /** Home component */
 const Home = () => {
@@ -198,7 +199,7 @@ const Home = () => {
                     {/* Image container */}
                     <div className="mx-auto w-full max-w-5xl rounded-xl bg-white/30 p-1.5 shadow-2xl ring-1 shadow-zinc-300/40 ring-gray-900/5 backdrop-blur-md sm:rounded-[1.75rem] sm:p-2.5">
                         <img
-                            src="/src/assets/images/app-wireframe.png"
+                            src={appWireframe}
                             alt="App Wireframe"
                             loading="lazy"
                             className="w-full rounded-lg border border-zinc-100 sm:rounded-[1.25rem]"
