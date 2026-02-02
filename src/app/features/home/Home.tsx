@@ -134,7 +134,7 @@ const Home = () => {
                             </span>
 
                             <span className="text-sm font-medium text-gray-600 transition-colors group-hover:text-blue-600">
-                                AI-Powered HTTP REST API Client
+                                AI-Powered HTTP API Client
                             </span>
                         </div>
 
@@ -213,11 +213,11 @@ const Home = () => {
                     className="relative w-full bg-[#FAFAFA] px-4 py-12 md:py-24">
                     {/* Heading */}
                     <div className="mb-12 text-center">
-                        <h2 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                        <h2 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">
                             Build APIs that <span className="text-blue-600">don't break</span>
                         </h2>
 
-                        <p className="text-lg font-normal text-gray-500">
+                        <p className="text-base font-normal text-gray-500 sm:text-lg">
                             Analyze, score, and perfect your REST design in real-time
                         </p>
                     </div>
