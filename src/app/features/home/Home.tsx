@@ -5,177 +5,211 @@ import {
     ArrowRight,
     BarChart3,
     CheckCircle2,
+    ChevronRight,
     Code2,
     FolderTree,
     Menu,
     Terminal,
     Users,
+    X,
     Zap
 } from "lucide-react";
 import { Link } from "react-router";
+import { useState } from "react";
 
 /** Home component */
 const Home = () => {
+    /** States */
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
         <div className="relative min-h-screen overflow-hidden bg-white font-sans selection:bg-purple-100 selection:text-purple-900">
-            {/* Floating navbar */}
-            <nav className="fixed top-4 right-0 left-0 z-50 mx-auto flex max-w-6xl justify-center px-4">
-                <div className="flex w-full items-center justify-between rounded-full bg-white/70 px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.02)] ring ring-gray-950/5 backdrop-blur-xl">
+            {/* Floating top navbar */}
+            <nav className="fixed top-4 right-0 left-0 z-50 mx-auto w-full max-w-6xl px-4">
+                {/* Card */}
+                <div className="relative flex items-center justify-between rounded-full bg-white/80 px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-gray-950/5 backdrop-blur-xl">
                     {/* Left section */}
                     <div className="flex items-center gap-6 pl-4">
-                        <a href="#" className="flex items-center gap-2 pr-6">
-                            {/* Logo Shadow: Tighter and colored */}
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md ring-1 shadow-blue-500/20 ring-blue-500/20">
+                        {/* Logo */}
+                        <Link
+                            to="/"
+                            onClick={() => setIsOpen(false)}
+                            className="flex items-center gap-2 pr-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20">
                                 <Zap size={18} fill="currentColor" />
                             </div>
-                            <span className="text-lg font-bold tracking-tight text-slate-800">
-                                talkbase
-                            </span>
-                        </a>
 
-                        {/* Desktop Nav Items */}
+                            <span className="text-[17px] font-bold tracking-tight text-gray-900">
+                                APIFlows
+                            </span>
+                        </Link>
+
+                        {/* See all features */}
                         <div className="hidden items-center gap-1 md:flex">
-                            {["Product", "Resources", "Pricing"].map((item) => (
-                                <a
-                                    href="#"
-                                    key={item}
-                                    className="group relative rounded-full px-4 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100/80 hover:text-slate-900">
-                                    {item}
-                                </a>
-                            ))}
+                            <a
+                                href="#features-grid"
+                                className="group flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100/80 hover:text-gray-900">
+                                See all features
+                                <ChevronRight
+                                    size={15}
+                                    className="text-gray-400 transition-transform group-hover:translate-x-0.5"
+                                />
+                            </a>
                         </div>
                     </div>
 
                     {/* Right section */}
                     <div className="flex items-center gap-2">
+                        {/* Login */}
                         <Link
                             to="/login"
-                            className="hidden rounded-full px-5 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 md:block">
+                            className="hidden rounded-full px-5 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:block">
                             Log in
                         </Link>
 
-                        {/* Button Shadow: Multi-layered for depth */}
+                        {/* Get started */}
                         <Link
                             to="/signup"
-                            className="group relative flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-blue-700">
+                            className="hidden items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-blue-500/10 transition-all hover:bg-blue-700 sm:flex">
                             Get Started
                         </Link>
 
-                        {/* Mobile Menu Toggle */}
-                        <button className="ml-2 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 md:hidden">
-                            <Menu size={20} />
+                        {/* Mobile dropdown toggle (Mobile) */}
+                        <button
+                            aria-label="Toggle dropdown"
+                            aria-expanded={isOpen}
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none md:hidden">
+                            {isOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
+                    </div>
+                </div>
+
+                {/* Mobile dropdown */}
+                <div
+                    className={`absolute top-full right-4 left-4 mt-2 origin-top transform transition-all duration-300 ease-in-out md:hidden ${isOpen ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-4 scale-95 opacity-0"} `}>
+                    <div className="rounded-2xl bg-white p-2 shadow-xl ring-1 ring-gray-950/5 backdrop-blur-xl">
+                        <div className="flex flex-col space-y-1 p-2">
+                            {/* See all features */}
+                            <a
+                                href="#features-grid"
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900">
+                                See all features
+                                <ChevronRight size={16} className="text-gray-400" />
+                            </a>
+
+                            <div className="my-2 border-t border-gray-100/50" />
+
+                            {/* Login */}
+                            <Link
+                                to="/login"
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900">
+                                Log in
+                            </Link>
+
+                            {/* Get started */}
+                            <Link
+                                to="/signup"
+                                onClick={() => setIsOpen(false)}
+                                className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700">
+                                Get Started
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </nav>
 
-            {/* Gradient blurs (Hero section) */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                {/* Teal Gradient - Top Right */}
-                <div className="absolute top-10 right-20 h-[240px] w-[240px] rounded-full bg-gradient-to-br from-teal-400/20 via-cyan-400/12 to-emerald-300/8 blur-[55px]"></div>
-
-                {/* Rose Gradient - Top Left */}
-                <div className="absolute top-20 -left-16 h-[220px] w-[220px] rounded-full bg-gradient-to-br from-rose-400/18 via-pink-400/10 to-fuchsia-300/6 blur-[60px]"></div>
-
-                {/* Amber Gradient - Middle Right */}
-                <div className="absolute top-[280px] -right-12 h-[180px] w-[180px] rounded-full bg-gradient-to-l from-amber-400/15 via-yellow-300/8 to-transparent blur-[45px]"></div>
-
-                {/* Button Area Blur - Centered on CTA buttons */}
-                <div className="absolute top-[460px] left-1/2 h-[160px] w-[360px] -translate-x-1/2 rounded-full bg-gradient-to-r from-teal-300/12 via-rose-300/8 to-amber-300/12 blur-[45px]"></div>
-
-                {/* Subtle Indigo Accent - Bottom Left */}
-                <div className="absolute top-[380px] left-10 h-[140px] w-[140px] rounded-full bg-gradient-to-tr from-indigo-400/10 via-violet-300/6 to-transparent blur-[40px]"></div>
-            </div>
-
             {/* Content */}
             <div className="relative z-10 flex flex-col items-center pt-30">
                 {/* Hero Section */}
-                <div className="mx-auto flex max-w-4xl flex-col items-center px-4 text-center md:px-8">
-                    {/* Badge */}
-                    <div className="relative mb-6 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1 text-sm font-medium text-blue-600 backdrop-blur-sm">
-                        <svg
-                            width="6"
-                            height="6"
-                            className="shrink-0 animate-pulse fill-blue-600"
-                            viewBox="0 0 2 2"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="1" cy="1" r="1" />
-                        </svg>
-                        AI-Powered HTTP API Client
-                    </div>
+                <div className="relative overflow-hidden pb-12 sm:pb-14">
+                    <div className="mx-auto flex max-w-5xl flex-col items-center px-5 text-center">
+                        {/* Badge */}
+                        <div className="group relative mb-6 inline-flex items-center space-x-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 transition-all hover:border-blue-300 hover:bg-blue-50/30">
+                            <span className="rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
+                                New
+                            </span>
 
-                    {/* Heading */}
-                    <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl sm:leading-[1.1]">
-                        Test, Optimize, and Perfect <br className="hidden sm:block" />
-                        <span className="text-blue-600">APIs with AI</span>
-                    </h1>
+                            <span className="text-sm font-medium text-gray-600 transition-colors group-hover:text-blue-600">
+                                AI-Powered HTTP REST API Client
+                            </span>
+                        </div>
 
-                    {/* Sub-heading */}
-                    <p className="mb-10 max-w-3xl text-lg leading-relaxed text-gray-500">
-                        An intelligent API client that analyzes your requests, scores API structure
-                        quality, optimizes performance, and provides AI-powered insights to build
-                        better APIs
-                    </p>
+                        {/* Heading */}
+                        <h1 className="mb-6 text-4xl font-bold tracking-tight text-balance text-gray-950 sm:text-6xl md:text-7xl lg:leading-[1.1]">
+                            Test, Optimize, and Perfect <br className="hidden md:block" />
+                            <span className="text-blue-600">APIs with AI</span>
+                        </h1>
 
-                    {/* Buttons */}
-                    <div className="mb-14 flex w-full flex-col justify-center gap-4 sm:flex-row">
-                        {/* Get started free button */}
-                        <Link
-                            to="/signup"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-7 py-3.5 text-base font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl">
-                            Get Started Free
-                            <svg
-                                width="20"
-                                height="20"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round">
-                                <path d="M5 12h14" />
-                                <path d="m12 5 7 7-7 7" />
-                            </svg>
-                        </Link>
+                        {/* Sub-heading */}
+                        <p className="mb-8 max-w-4xl text-base leading-relaxed text-gray-600 sm:mb-10 sm:text-xl">
+                            An intelligent API client that analyzes your requests, score quality,
+                            and get AI insights to build bulletproof APIs faster
+                        </p>
 
-                        {/* Try demo button */}
-                        <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-7 py-3.5 text-base font-semibold text-gray-800 transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900">
-                            <svg
-                                width="20"
-                                height="20"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round">
-                                <polygon points="5 3 19 12 5 21 5 3" />
-                            </svg>
-                            Try Demo
-                        </button>
+                        {/* Buttons */}
+                        <div className="flex w-full flex-col justify-center gap-4 sm:flex-row">
+                            <Link
+                                to="/signup"
+                                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 sm:px-8 sm:py-4 sm:text-base">
+                                Get Started Free
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    className="transition-transform group-hover:translate-x-0.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="2.5">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                                    />
+                                </svg>
+                            </Link>
+
+                            <button
+                                onClick={() => {}}
+                                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:text-blue-600 sm:px-8 sm:py-4 sm:text-base">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    className="text-gray-500 transition-colors group-hover:text-blue-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="2">
+                                    <polygon points="5 3 19 12 5 21 5 3" />
+                                </svg>
+                                Try Demo
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 {/* App wireframe */}
-                <div className="relative z-10 w-full px-4 sm:px-0">
+                <div className="relative z-10 w-full px-4 sm:px-6 lg:px-0">
                     {/* Half background overlay */}
                     <div className="absolute bottom-0 left-1/2 h-1/2 w-full -translate-x-1/2 bg-[#FAFAFA]"></div>
 
                     {/* Image container */}
-                    <div className="mx-auto w-full max-w-5xl rounded-[1.75rem] bg-white/30 p-2.5 shadow-2xl ring-1 shadow-zinc-300/40 ring-gray-900/5 backdrop-blur-md">
+                    <div className="mx-auto w-full max-w-5xl rounded-xl bg-white/30 p-1.5 shadow-2xl ring-1 shadow-zinc-300/40 ring-gray-900/5 backdrop-blur-md sm:rounded-[1.75rem] sm:p-2.5">
                         <img
                             src="/src/assets/images/app-wireframe.png"
                             alt="App Wireframe"
-                            className="w-full rounded-[1.25rem] border border-zinc-100"
+                            loading="lazy"
+                            className="w-full rounded-lg border border-zinc-100 sm:rounded-[1.25rem]"
                         />
                     </div>
                 </div>
 
                 {/* Bento Grid */}
-                <div className="relative w-full bg-[#FAFAFA] px-4 py-12 md:py-24">
+                <div
+                    id="features-grid"
+                    className="relative w-full bg-[#FAFAFA] px-4 py-12 md:py-24">
                     {/* Heading */}
                     <div className="mb-12 text-center">
                         <h2 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
