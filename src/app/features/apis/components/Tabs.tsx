@@ -5,7 +5,7 @@ import { useTabStore } from "../store/tab-store.ts";
 import type { HttpMethod } from "../utils/types.ts";
 import { METHOD_COLORS } from "../utils/data.ts";
 import { DropdownMenu } from "radix-ui";
-import { Check, ChevronDown, Cloud, Download, HardDrive, X } from "lucide-react";
+import { Check, ChevronDown, Cloud, X } from "lucide-react";
 import SaveDialog, { type SaveDialogRef } from "../overlays/SaveDialog.tsx";
 import { useCollectionStore } from "../store/collection-store.ts";
 import { requestAPI } from "../api/request-api.ts";
@@ -268,7 +268,7 @@ const Tabs = () => {
                             align="end"
                             sideOffset={8}
                             className="animate-in fade-in slide-in-from-top-2 min-w-[220px] rounded-2xl border border-gray-100 bg-white/95 p-2 shadow-lg ring-1 ring-gray-200/40 backdrop-blur-md">
-                            {/* Cloud Agent Option */}
+                            {/* Cloud agent option */}
                             <DropdownMenu.Item
                                 onSelect={() => setAgent("Cloud Agent")}
                                 className="flex w-full cursor-pointer flex-col gap-2 rounded-xl px-3 py-3 text-sm text-gray-700 transition-all hover:bg-gray-50 focus:bg-gray-50">
@@ -289,29 +289,29 @@ const Tabs = () => {
                                 </div>
                             </DropdownMenu.Item>
 
-                            {/* Local Agent Option */}
-                            <DropdownMenu.Item
-                                onSelect={() => setAgent("Local Agent")}
-                                className="flex w-full cursor-pointer flex-col gap-2 rounded-xl px-3 py-3 text-sm text-gray-700 transition-all hover:bg-gray-50 focus:bg-gray-50">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <HardDrive className="h-4 w-4 text-gray-500" />
-                                        <span className="font-medium">Local Agent</span>
-                                    </div>
-                                    {agent === "Local Agent" && (
-                                        <Check className="h-4 w-4 text-gray-500" />
-                                    )}
-                                </div>
+                            {/* Local agent option */}
+                            {/*<DropdownMenu.Item*/}
+                            {/*    onSelect={() => setAgent("Local Agent")}*/}
+                            {/*    className="flex w-full cursor-pointer flex-col gap-2 rounded-xl px-3 py-3 text-sm text-gray-700 transition-all hover:bg-gray-50 focus:bg-gray-50">*/}
+                            {/*    <div className="flex items-center justify-between">*/}
+                            {/*        <div className="flex items-center gap-2">*/}
+                            {/*            <HardDrive className="h-4 w-4 text-gray-500" />*/}
+                            {/*            <span className="font-medium">Local Agent</span>*/}
+                            {/*        </div>*/}
+                            {/*        {agent === "Local Agent" && (*/}
+                            {/*            <Check className="h-4 w-4 text-gray-500" />*/}
+                            {/*        )}*/}
+                            {/*    </div>*/}
 
-                                <div className="mt-1 space-y-1 text-xs text-gray-500">
-                                    <FeatureItem label="No CORS limit" available />
-                                    <FeatureItem label="Local support" available />
-                                    <FeatureItem
-                                        label="Download required"
-                                        icon={<Download className="h-3.5 w-3.5 text-gray-500" />}
-                                    />
-                                </div>
-                            </DropdownMenu.Item>
+                            {/*    <div className="mt-1 space-y-1 text-xs text-gray-500">*/}
+                            {/*        <FeatureItem label="No CORS limit" available />*/}
+                            {/*        <FeatureItem label="Local support" available />*/}
+                            {/*        <FeatureItem*/}
+                            {/*            label="Download required"*/}
+                            {/*            icon={<Download className="h-3.5 w-3.5 text-gray-500" />}*/}
+                            {/*        />*/}
+                            {/*    </div>*/}
+                            {/*</DropdownMenu.Item>*/}
                         </DropdownMenu.Content>
                     </DropdownMenu.Portal>
                 </DropdownMenu.Root>

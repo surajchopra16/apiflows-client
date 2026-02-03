@@ -1,13 +1,10 @@
 /** Imported modules */
 import { useState } from "react";
-import { useCollectionStore } from "../../store/collection-store.ts";
 import Collection from "./Collection.tsx";
+import type { CollectionNode } from "../../utils/types.ts";
 
 /** Explorer component */
-const Explorer = () => {
-    /** Collection store */
-    const collections = useCollectionStore((state) => state.collections);
-
+const Explorer = ({ collections }: { collections: CollectionNode[] }) => {
     /** Active node ID state */
     const [activeNodeId, setActiveNodeId] = useState<string>("");
 

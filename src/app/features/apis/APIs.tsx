@@ -3,10 +3,11 @@ import Tabs from "./components/Tabs.tsx";
 import RequestBuilder from "./components/RequestBuilder.tsx";
 import { useEffect, useState } from "react";
 import Explorer from "./components/explorer/Explorer.tsx";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { collectionAPI } from "./api/collection-api.ts";
 import { useCollectionStore } from "./store/collection-store.ts";
 import { toast } from "sonner";
+import type { CollectionNode, FolderNode, RequestNode } from "./utils/types.ts";
 
 /** APIs component */
 const APIs = () => {
@@ -15,8 +16,53 @@ const APIs = () => {
     const setCollectionNodes = useCollectionStore((state) => state.setCollectionNodes);
     const addCollectionNode = useCollectionStore((state) => state.addCollectionNode);
 
-    /** Loading states */
+    /** States */
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    /** Filtered collections */
+    const filteredCollections = (() => {
+        // If no search query, return all collections
+        if (!searchQuery.trim()) return collections;
+
+        const query = searchQuery.toLowerCase();
+
+        /** Filters the request */
+        const filterRequest = (request: RequestNode) => request.name.toLowerCase().includes(query);
+
+        /** Filters the folder */
+        const filterFolder = (folder: FolderNode, parentMatch: boolean) => {
+            // Check if this folder matches the query
+            const nameMatch = folder.name.toLowerCase().includes(query);
+            if (parentMatch || nameMatch) return folder;
+
+            // Otherwise, filter the children requests and folders
+            const filteredRequests = folder.children.filter((req) => filterRequest(req));
+            if (filteredRequests.length > 0) return { ...folder, children: filteredRequests };
+
+            return null;
+        };
+
+        return collections
+            .map((collection) => {
+                // Check if the collection name matches the query
+                const nameMatch = collection.name.toLowerCase().includes(query);
+                if (nameMatch) return collection;
+
+                // Otherwise, filter the children folders and requests
+                const filteredChildren = collection.children
+                    .map((child) => {
+                        if (child.type === "request") return filterRequest(child) ? child : null;
+                        else return filterFolder(child, nameMatch);
+                    })
+                    .filter(Boolean) as (FolderNode | RequestNode)[];
+                if (filteredChildren.length > 0)
+                    return { ...collection, children: filteredChildren };
+
+                return null;
+            })
+            .filter(Boolean) as CollectionNode[];
+    })();
 
     /** Handle get collections */
     const handleGetCollections = async () => {
@@ -71,19 +117,16 @@ const APIs = () => {
                             <input
                                 type="text"
                                 placeholder="Search"
-                                className="h-7 w-full rounded-md border border-gray-200 py-1 pr-2 pl-7 text-[12px] focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="h-7 w-full rounded-md border border-gray-200 py-1 pr-2 pl-7 text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none"
                             />
                         </div>
 
-                        {/* Filter */}
-                        <button className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100">
-                            <Filter size={14} />
-                        </button>
-
                         {/* Add */}
                         <button
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500 text-white hover:bg-blue-600"
-                            onClick={handleAddCollection}>
+                            onClick={handleAddCollection}
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500 text-white hover:bg-blue-600">
                             <svg
                                 width="16"
                                 height="16"
@@ -108,7 +151,7 @@ const APIs = () => {
                         Loading collections...
                     </div>
                 ) : (
-                    <Explorer />
+                    <Explorer collections={filteredCollections} />
                 )}
             </div>
 
