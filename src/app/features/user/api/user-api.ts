@@ -71,4 +71,21 @@ const signup = async (data: UserData): Promise<UserResponse> => {
     }
 };
 
-export const userAPI = { status, login, signup };
+/** Logout the user */
+const logout = async (): Promise<void> => {
+    try {
+        const response = await fetch(`${env.HOST_URL}/api/v1/users/logout`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || "Failed to logout");
+    } catch (err) {
+        console.error("Error logging out:", err);
+        throw err;
+    }
+};
+
+export const userAPI = { status, login, signup, logout };
