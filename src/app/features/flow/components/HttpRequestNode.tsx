@@ -227,9 +227,16 @@ const httpRequestNodeSpec: NodeSpec = {
             // Fetch the request
             const request = await requestAPI.getRequest(requestId);
 
+            // Get the cookie jar from localStorage
+            const serializedCookieJar = localStorage.getItem("apiflows_cookie_jar") || "";
+
             // Send the request using the cloud agent
-            const serializedRequest = serializeRequest(request);
+            const serializedRequest = serializeRequest(request, serializedCookieJar);
             const response = await cloudAgentAPI.sendUpstreamRequest(serializedRequest);
+
+            // Update the cookie jar in localStorage
+            if (response.serializedCookieJar)
+                localStorage.setItem("apiflows_cookie_jar", response.serializedCookieJar);
 
             if (response.statusCode >= 400 && response.statusCode < 600)
                 return { fail: { error: `HTTP ${response.statusCode} Error` } };

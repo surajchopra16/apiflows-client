@@ -2,7 +2,7 @@
 import type { Request, UpstreamRequest } from "./types.ts";
 
 /** Serialize the request */
-const serializeRequest = (request: Request): UpstreamRequest => {
+const serializeRequest = (request: Request, serializedCookieJar?: string): UpstreamRequest => {
     // Serialize the query params
     const queryParams = request.queryParams.reduce(
         (acc, { enabled, key, value }) => {
@@ -26,7 +26,8 @@ const serializeRequest = (request: Request): UpstreamRequest => {
         method: request.method,
         queryParams,
         headers,
-        body: request.body
+        body: request.body,
+        serializedCookieJar
     };
 };
 

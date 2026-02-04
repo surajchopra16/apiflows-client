@@ -1,24 +1,32 @@
 /** Imported modules */
 import Tabs from "./components/Tabs.tsx";
 import RequestBuilder from "./components/RequestBuilder.tsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Explorer from "./components/explorer/Explorer.tsx";
-import { Search } from "lucide-react";
+import { Search, Cookie } from "lucide-react";
 import { collectionAPI } from "./api/collection-api.ts";
 import { useCollectionStore } from "./store/collection-store.ts";
 import { toast } from "sonner";
 import type { CollectionNode, FolderNode, RequestNode } from "./utils/types.ts";
+import CookieOverlay, { type CookieOverlayRef } from "./overlays/CookieOverlay.tsx";
+import { useCookieStore } from "./store/cookie-store.ts";
 
 /** APIs component */
 const APIs = () => {
+    /** States */
+    const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    /** Refs */
+    const cookieOverlayRef = useRef<CookieOverlayRef | null>(null);
+
     /** Collection store */
     const collections = useCollectionStore((state) => state.collections);
     const setCollectionNodes = useCollectionStore((state) => state.setCollectionNodes);
     const addCollectionNode = useCollectionStore((state) => state.addCollectionNode);
 
-    /** States */
-    const [loading, setLoading] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
+    /** Cookie store */
+    const loadCookieJar = useCookieStore((state) => state.loadCookieJar);
 
     /** Filtered collections */
     const filteredCollections = (() => {
@@ -64,6 +72,19 @@ const APIs = () => {
             .filter(Boolean) as CollectionNode[];
     })();
 
+    /** Fetch all the collections */
+    useEffect(() => {
+        if (collections.length > 0) return;
+
+        setLoading(true);
+        handleGetCollections().then();
+    }, []);
+
+    /** Load cookie jar from localStorage */
+    useEffect(() => {
+        loadCookieJar();
+    }, []);
+
     /** Handle get collections */
     const handleGetCollections = async () => {
         try {
@@ -75,14 +96,6 @@ const APIs = () => {
             setLoading(false);
         }
     };
-
-    /** Fetch all the collections */
-    useEffect(() => {
-        if (collections.length > 0) return;
-
-        setLoading(true);
-        handleGetCollections().then();
-    }, []);
 
     /** Handle add collection */
     const handleAddCollection = async () => {
@@ -164,8 +177,19 @@ const APIs = () => {
                 <RequestBuilder />
 
                 {/* Bottom bar */}
-                <div className="z-10 h-8 w-full shrink-0 border-t border-[#EBEBEB] bg-white p-3"></div>
+                <div className="z-10 flex h-8 w-full shrink-0 items-center justify-end border-t border-[#EBEBEB] bg-white px-3">
+                    <button
+                        aria-label="Manage Cookies"
+                        onClick={() => cookieOverlayRef.current?.open()}
+                        className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus:outline-none">
+                        <Cookie size={14} />
+                        Cookies
+                    </button>
+                </div>
             </div>
+
+            {/* Cookie overlay */}
+            <CookieOverlay ref={cookieOverlayRef} />
         </div>
     );
 };

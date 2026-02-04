@@ -18,6 +18,7 @@ import { cloudAgentAPI } from "../api/cloud-agent-api.ts";
 import { useResponseStore } from "../store/response-store.ts";
 import { METHOD_COLORS } from "../utils/data.ts";
 import { useCollectionStore } from "../store/collection-store.ts";
+import { useCookieStore } from "../store/cookie-store.ts";
 
 /** HTTP methods for the dropdown */
 const HTTP_METHODS: HttpMethod[] = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
@@ -27,10 +28,10 @@ const TAB_ITEMS = ["params", "headers", "body", "settings"];
 
 /** Request builder component */
 const RequestBuilder = () => {
-    /** Active tab state */
+    /** States */
     const [activeTab, setActiveTab] = useState("params");
 
-    /** Response panel ref */
+    /** Refs */
     const responsePanelRef = useRef<ResponsePanelRef | null>(null);
 
     /** Collection store */
@@ -50,6 +51,10 @@ const RequestBuilder = () => {
     const addSuccessResponse = useResponseStore((state) => state.addSuccessResponse);
     const addErrorResponse = useResponseStore((state) => state.addErrorResponse);
     const cancelResponse = useResponseStore((state) => state.cancelResponse);
+
+    /** Cookie store */
+    const serializedCookieJar = useCookieStore((state) => state.serializedCookieJar);
+    const setSerializedCookieJar = useCookieStore((state) => state.setSerializedCookieJar);
 
     /** Current active request */
     const request = useMemo(() => {
@@ -101,7 +106,7 @@ const RequestBuilder = () => {
         responsePanelRef.current?.open();
 
         // Serialize the request
-        const serializedRequest = serializeRequest(request);
+        const serializedRequest = serializeRequest(request, serializedCookieJar);
 
         const controller = new AbortController();
         addLoadingResponse(request._id, controller);
@@ -111,6 +116,9 @@ const RequestBuilder = () => {
                 controller.signal
             );
             addSuccessResponse(request._id, response);
+
+            // Update the cookie jar from response
+            if (response.serializedCookieJar) setSerializedCookieJar(response.serializedCookieJar);
         } catch {
             addErrorResponse(request._id, "Failed to fetch request");
         }
