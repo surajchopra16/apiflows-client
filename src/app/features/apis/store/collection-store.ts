@@ -33,6 +33,9 @@ type CollectionStore = {
     addRequestNode: (id: string, folderId: string | null, requestNode: RequestNode) => void;
     updateRequestNode: (id: string, requestId: string, updates: RequestNodeUpdates) => void;
     removeRequestNode: (id: string, requestId: string) => void;
+
+    // Clear operations
+    clearCollections: () => void;
 };
 
 /** Collection store */
@@ -196,5 +199,8 @@ export const useCollectionStore = create<CollectionStore>((set, get) => ({
                       }
                     : collection
             )
-        }))
+        })),
+
+    /** Clean all the collections */
+    clearCollections: () => set(() => ({ collections: [] }))
 }));

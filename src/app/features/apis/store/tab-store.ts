@@ -9,6 +9,7 @@ type TabStore = {
     removeTab: (id: string) => void;
     removeTabs: (ids: string[]) => void;
     updateActiveTab: (id: string | null) => void;
+    clearTabs: () => void;
 };
 
 /** Tab store */
@@ -73,5 +74,8 @@ export const useTabStore = create<TabStore>((set) => ({
         }),
 
     /** Update the active tab */
-    updateActiveTab: (tab) => set(() => ({ activeTabId: tab }))
+    updateActiveTab: (tab) => set(() => ({ activeTabId: tab })),
+
+    /** Clear all the tabs */
+    clearTabs: () => set(() => ({ tabIds: [], activeTabId: null }))
 }));

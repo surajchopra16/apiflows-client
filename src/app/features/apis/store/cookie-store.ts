@@ -9,6 +9,7 @@ type CookieStore = {
     serializedCookieJar: string;
     setSerializedCookieJar: (jar: string) => void;
     loadCookieJar: () => void;
+    clearCookieJar: () => void;
 };
 
 /** Cookie store */
@@ -25,5 +26,11 @@ export const useCookieStore = create<CookieStore>((set) => ({
     loadCookieJar: () => {
         const jar = localStorage.getItem(COOKIE_JAR_KEY) || "";
         set({ serializedCookieJar: jar });
+    },
+
+    /** Clear the cookie jar */
+    clearCookieJar: () => {
+        localStorage.removeItem(COOKIE_JAR_KEY);
+        set({ serializedCookieJar: "" });
     }
 }));

@@ -20,6 +20,7 @@ type ResponseStore = {
     cancelResponse: (requestId: string) => void;
     removeResponse: (requestId: string) => void;
     removeResponses: (requestIds: string[]) => void;
+    clearResponses: () => void;
 };
 
 /** Response store */
@@ -76,5 +77,15 @@ export const useResponseStore = create<ResponseStore>((set) => ({
             responses: state.responses.filter(
                 (response) => !requestIds.includes(response.requestId)
             )
-        }))
+        })),
+
+    /** Clear all responses */
+    clearResponses: () =>
+        set((state) => {
+            // Cancel all pending requests before clearing
+            state.responses.forEach((response) => {
+                if (response.controller) response.controller.abort();
+            });
+            return { responses: [] };
+        })
 }));

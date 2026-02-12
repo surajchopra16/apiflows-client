@@ -2,6 +2,11 @@
 import { Home, ChevronRight, LogOut, User } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import { useUserStore } from "../../features/user/store/user-store.ts";
+import { useCollectionStore } from "../../features/apis/store/collection-store.ts";
+import { useRequestStore } from "../../features/apis/store/request-store.ts";
+import { useResponseStore } from "../../features/apis/store/response-store.ts";
+import { useTabStore } from "../../features/apis/store/tab-store.ts";
+import { useCookieStore } from "../../features/apis/store/cookie-store.ts";
 import { Link, useNavigate } from "react-router";
 import { userAPI } from "../../features/user/api/user-api.ts";
 import { useLoadingOverlay } from "../overlays/LoadingOverlayProvider.tsx";
@@ -12,6 +17,11 @@ const Header = () => {
     /** Hook */
     const navigate = useNavigate();
     const { user, clearUser } = useUserStore();
+    const { clearCollections } = useCollectionStore();
+    const { clearTabs } = useTabStore();
+    const { clearRequests } = useRequestStore();
+    const { clearResponses } = useResponseStore();
+    const { clearCookieJar } = useCookieStore();
     const { showLoading, hideLoading } = useLoadingOverlay();
 
     /** Handler the logout */
@@ -20,6 +30,11 @@ const Header = () => {
         try {
             await userAPI.logout();
             clearUser();
+            clearCollections();
+            clearTabs();
+            clearRequests();
+            clearResponses();
+            clearCookieJar();
             toast.success("Logged out successfully");
             navigate("/login");
         } catch (err) {

@@ -28,6 +28,9 @@ type RequestStore = {
     addPendingChange: (id: string, change: RequestPendingChanges) => void;
     commitPendingChanges: (id: string) => void;
     commitNewRequest: (id: string) => void;
+
+    // Clear operations
+    clearRequests: () => void;
 };
 
 /** Request store */
@@ -170,5 +173,8 @@ export const useRequestStore = create<RequestStore>((set) => ({
                     ? { ...request, pendingChanges: {}, status: "synced" }
                     : request
             )
-        }))
+        })),
+
+    /** Clear all the requests */
+    clearRequests: () => set(() => ({ requests: [] }))
 }));
