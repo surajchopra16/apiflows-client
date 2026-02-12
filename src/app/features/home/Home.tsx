@@ -14,19 +14,47 @@ import {
     X,
     Zap
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import appWireframe from "../../../assets/images/app-wireframe.png";
+import { useLoadingOverlay } from "../../shared/overlays/LoadingOverlayProvider.tsx";
+import { userAPI } from "../user/api/user-api.ts";
+import { useUserStore } from "../user/store/user-store.ts";
+import { toast } from "sonner";
 
 /** Home component */
 const Home = () => {
     /** States */
     const [isOpen, setIsOpen] = useState(false);
 
+    /** Hooks */
+    const navigate = useNavigate();
+    const { user, setUser } = useUserStore();
+    const { showLoading, hideLoading } = useLoadingOverlay();
+
+    /** Handle the try demo */
+    const handleTryDemo = async () => {
+        // Check if the user is already logged in
+        if (user !== null) return navigate("/apis");
+
+        showLoading();
+        try {
+            const user = await userAPI.guest();
+            setUser({ role: user.role, _id: user._id, email: user.email });
+            toast.success("Logged in as guest user for 7 days. Enjoy testing the demo!");
+            navigate("/apis");
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Failed to login as guest";
+            toast.error(message);
+        } finally {
+            hideLoading();
+        }
+    };
+
     return (
-        <div className="relative min-h-screen overflow-hidden bg-white font-sans selection:bg-purple-100 selection:text-purple-900">
+        <div className="relative min-h-screen overflow-hidden bg-[#FAFAFA] selection:bg-blue-100 selection:text-blue-900">
             {/* Floating top navbar */}
-            <nav className="fixed top-4 right-0 left-0 z-50 mx-auto w-full max-w-6xl px-4">
+            <nav className="fixed top-4 right-0 left-0 z-50 mx-auto w-full max-w-6xl px-4 sm:px-7">
                 {/* Card */}
                 <div className="relative flex items-center justify-between rounded-full bg-white/80 px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-gray-950/5 backdrop-blur-xl">
                     {/* Left section */}
@@ -128,7 +156,7 @@ const Home = () => {
                 <div className="relative overflow-hidden pb-12 sm:pb-14">
                     <div className="mx-auto flex max-w-5xl flex-col items-center px-5 text-center">
                         {/* Badge */}
-                        <div className="group relative mb-6 inline-flex items-center space-x-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 transition-all hover:border-blue-300 hover:bg-blue-50/30">
+                        <div className="group relative mb-6 inline-flex items-center space-x-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 transition-all hover:border-blue-300 hover:bg-blue-50/30">
                             <span className="rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
                                 New
                             </span>
@@ -139,13 +167,13 @@ const Home = () => {
                         </div>
 
                         {/* Heading */}
-                        <h1 className="mb-6 text-4xl font-bold tracking-tight text-balance text-gray-950 sm:text-6xl md:text-7xl lg:leading-[1.1]">
+                        <h1 className="mb-6 text-4xl font-bold tracking-tight text-balance text-gray-950 sm:text-6xl lg:leading-[1.1]">
                             Test, Optimize, and Perfect <br className="hidden md:block" />
                             <span className="text-blue-600">APIs with AI</span>
                         </h1>
 
                         {/* Sub-heading */}
-                        <p className="mb-8 max-w-4xl text-base leading-relaxed text-gray-600 sm:mb-10 sm:text-xl">
+                        <p className="mb-8 max-w-3xl text-base leading-relaxed text-gray-600 sm:mb-10 sm:text-lg">
                             An intelligent API client that analyzes your requests, score quality,
                             and get AI insights to build bulletproof APIs faster
                         </p>
@@ -154,7 +182,7 @@ const Home = () => {
                         <div className="flex w-full flex-col justify-center gap-4 sm:flex-row">
                             <Link
                                 to="/signup"
-                                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 sm:px-8 sm:py-4 sm:text-base">
+                                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 sm:px-8 sm:py-4 sm:text-[15px]">
                                 Get Started Free
                                 <svg
                                     width="20"
@@ -173,8 +201,8 @@ const Home = () => {
                             </Link>
 
                             <button
-                                onClick={() => {}}
-                                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:text-blue-600 sm:px-8 sm:py-4 sm:text-base">
+                                onClick={handleTryDemo}
+                                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:text-blue-600 sm:px-8 sm:py-4 sm:text-[15px]">
                                 <svg
                                     width="20"
                                     height="20"
@@ -192,10 +220,7 @@ const Home = () => {
                 </div>
 
                 {/* App wireframe */}
-                <div className="relative z-10 w-full px-4 sm:px-6 lg:px-0">
-                    {/* Half background overlay */}
-                    <div className="absolute bottom-0 left-1/2 h-1/2 w-full -translate-x-1/2 bg-[#FAFAFA]"></div>
-
+                <div className="z-10 w-full px-4 sm:px-6 lg:px-0">
                     {/* Image container */}
                     <div className="mx-auto w-full max-w-5xl rounded-xl bg-white/30 p-1.5 shadow-2xl ring-1 shadow-zinc-300/40 ring-gray-900/5 backdrop-blur-md sm:rounded-[1.75rem] sm:p-2.5">
                         <img
@@ -208,9 +233,7 @@ const Home = () => {
                 </div>
 
                 {/* Bento Grid */}
-                <div
-                    id="features-grid"
-                    className="relative w-full bg-[#FAFAFA] px-4 py-12 md:py-24">
+                <div id="features-grid" className="relative w-full px-4 py-12 md:py-24">
                     {/* Heading */}
                     <div className="mb-12 text-center">
                         <h2 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">

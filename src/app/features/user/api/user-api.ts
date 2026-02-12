@@ -6,7 +6,7 @@ import { env } from "../../../../env.ts";
 type UserData = { email: string; password: string };
 
 /** User response type */
-type UserResponse = { _id: string; email: string; createdAt: string };
+type UserResponse = { role: "user" | "guest"; _id: string; email: string; createdAt: string };
 
 /**
  * ==================== User API ====================>
@@ -31,22 +31,21 @@ const status = async (): Promise<CurrentUser> => {
     }
 };
 
-/** Login the user */
-const login = async (data: UserData): Promise<UserResponse> => {
+/** Login the guest user */
+const guest = async (): Promise<UserResponse> => {
     try {
-        const response = await fetch(`${env.HOST_URL}/api/v1/users/login`, {
+        const response = await fetch(`${env.HOST_URL}/api/v1/users/guest`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(data)
+            credentials: "include"
         });
         const result = await response.json();
 
-        if (!response.ok) throw new Error(result.message || "Failed to login");
+        if (!response.ok) throw new Error(result.message || "Failed to login as guest");
 
         return result.data.user;
     } catch (err) {
-        console.error("Error logging in:", err);
+        console.error("Error logging in as guest:", err);
         throw err;
     }
 };
@@ -71,6 +70,26 @@ const signup = async (data: UserData): Promise<UserResponse> => {
     }
 };
 
+/** Login the user */
+const login = async (data: UserData): Promise<UserResponse> => {
+    try {
+        const response = await fetch(`${env.HOST_URL}/api/v1/users/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || "Failed to login");
+
+        return result.data.user;
+    } catch (err) {
+        console.error("Error logging in:", err);
+        throw err;
+    }
+};
+
 /** Logout the user */
 const logout = async (): Promise<void> => {
     try {
@@ -88,4 +107,4 @@ const logout = async (): Promise<void> => {
     }
 };
 
-export const userAPI = { status, login, signup, logout };
+export const userAPI = { status, guest, signup, login, logout };

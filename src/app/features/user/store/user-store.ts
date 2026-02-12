@@ -2,7 +2,7 @@
 import { create } from "zustand";
 
 /** Current user type */
-export type CurrentUser = { _id: string; email: string } | null;
+export type CurrentUser = { role: "user" | "guest"; _id: string; email: string } | null;
 
 /** User store type */
 type UserStore = {

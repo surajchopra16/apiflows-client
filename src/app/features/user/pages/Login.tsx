@@ -45,11 +45,27 @@ const Login = () => {
         showLoading();
         try {
             const user = await userAPI.login({ email: trimmedEmail, password: trimmedPassword });
-            setUser({ _id: user._id, email: user.email });
+            setUser({ role: user.role, _id: user._id, email: user.email });
             toast.success("Logged in successfully");
             navigate("/apis");
         } catch (err) {
             const message = err instanceof Error ? err.message : "Failed to login";
+            toast.error(message);
+        } finally {
+            hideLoading();
+        }
+    };
+
+    /** Handle the try demo */
+    const handleTryDemo = async () => {
+        showLoading();
+        try {
+            const user = await userAPI.guest();
+            setUser({ role: user.role, _id: user._id, email: user.email });
+            toast.success("Logged in as guest user for 7 days. Enjoy testing the demo!");
+            navigate("/apis");
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Failed to login as guest";
             toast.error(message);
         } finally {
             hideLoading();
@@ -78,7 +94,7 @@ const Login = () => {
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    <form onSubmit={handleLogin} className="mb-3 space-y-4">
                         {/* Email */}
                         <div className="space-y-1">
                             <label
@@ -170,8 +186,26 @@ const Login = () => {
                         </div>
                     </form>
 
+                    {/* Try Demo button */}
+                    <button
+                        type="button"
+                        onClick={handleTryDemo}
+                        className="group mb-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:text-blue-600 focus:outline-none">
+                        <svg
+                            width="18"
+                            height="18"
+                            className="text-gray-500 transition-colors group-hover:text-blue-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2">
+                            <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                        Try Demo
+                    </button>
+
                     {/* Signup link */}
-                    <div className="mt-7 text-center text-sm font-normal text-gray-500">
+                    <div className="text-center text-sm font-normal text-gray-500">
                         Don't have an account?{" "}
                         <Link
                             to="/signup"
@@ -182,7 +216,7 @@ const Login = () => {
                 </div>
 
                 {/* Footer */}
-                <p className="mt-6 text-center text-xs text-slate-400">
+                <p className="mt-5 text-center text-xs text-slate-400">
                     &copy; 2026 APIFlow. All rights reserved.
                 </p>
             </div>
