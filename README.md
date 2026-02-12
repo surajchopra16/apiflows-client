@@ -1,76 +1,77 @@
-# React + TypeScript + Vite
+# APIFlows Client - Modern API Testing Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+APIFlows Client is a robust, web-based interface for developing, testing, and managing API requests with ease.
 
-Currently, two official plugins are available:
+## Overview / Purpose
+APIFlows Client is a modern web tool for building, testing, and managing APIs. It simplifies the development lifecycle with an intuitive request builder, robust collection management, and detailed response inspection.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react)
-  uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc)
-  uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
+- **API Request Builder**: Intuitive interface to configure HTTP methods, headers, parameters, and body content (JSON, XML, Text, etc.).
+- **Collection Management**: Organize your API requests into structured collections and folders for better maintainability.
+- **Response Inspector**: Comprehensive view of response status codes, headers, and formatted bodies with syntax highlighting.
+- **Tabbed Interface**: Efficient multitasking with a multi-tab support system.
+- **Variable & Environment Support**: Manage dynamic values and cookies across different environments (Development, Production, etc.).
+- **User Authentication**: Secure user accounts to save and sync your work.
 
-## Expanding the ESLint configuration
+## Prerequisites
+Before running this client, ensure the backend server is running.
 
-If you are developing a production application, we recommend updating the configuration to enable
-type-aware lint rules:
+**APIFlows Server**: This client requires the APIFlows Server to handle authentication and data persistence.
+1. Repository: [https://github.com/surajchopra16/apiflows-server](https://github.com/surajchopra16/apiflows-server)
+2. Follow the instructions in the server repository to start the backend.
+3. Ensure the server is running (default: `http://localhost:8080`).
 
-```js
-export default tseslint.config([
-    globalIgnores(["dist"]),
-    {
-        files: ["**/*.{ts,tsx}"],
-        extends: [
-            // Other configs...
+## Tech Stack
+- **Languages**: TypeScript, HTML, CSS
+- **Framework**: React 19
+- **Build Tool**: Vite 7
+- **Styling**: Tailwind CSS 4
+- **State Management**: Zustand
+- **Routing**: React Router 7
+- **Editor**: CodeMirror
+- **Icons**: Lucide React
 
-            // Remove tseslint.configs.recommended and replace with this
-            ...tseslint.configs.recommendedTypeChecked,
-            // Alternatively, use this for stricter rules
-            ...tseslint.configs.strictTypeChecked,
-            // Optionally, add this for stylistic rules
-            ...tseslint.configs.stylisticTypeChecked
+## Installation & Setup
 
-            // Other configs...
-        ],
-        languageOptions: {
-            parserOptions: {
-                project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-                tsconfigRootDir: import.meta.dirname
-            }
-            // other options...
-        }
-    }
-]);
-```
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd apiflows-client
+   ```
 
-You can also install
-[eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x)
-and
-[eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom)
-for React-specific lint rules:
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+3. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+   The application will be available at `http://localhost:5173` (or the port shown in your terminal).
 
-export default tseslint.config([
-    globalIgnores(["dist"]),
-    {
-        files: ["**/*.{ts,tsx}"],
-        extends: [
-            // Other configs...
-            // Enable lint rules for React
-            reactX.configs["recommended-typescript"],
-            // Enable lint rules for React DOM
-            reactDom.configs.recommended
-        ],
-        languageOptions: {
-            parserOptions: {
-                project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-                tsconfigRootDir: import.meta.dirname
-            }
-            // other options...
-        }
-    }
-]);
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+## Usage
+1. Open the application in your browser.
+2. Sign up or log in to your account.
+3. Use the **Explorer** to create a new Collection.
+4. Add Requests to your collection and configure them in the **Request Builder**.
+5. Hitting "Send" triggers the request, and results appear in the **Response Panel**.
+
+## Environment Variables
+Create a `.env` file in the root directory with the following variables:
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_ENVIRONMENT` | Set to `development` or `production` |
+| `VITE_HOST_URL` | The base URL for the backend API |
+
+Example:
+```env
+VITE_ENVIRONMENT=development
+VITE_HOST_URL=http://localhost:8080
 ```
