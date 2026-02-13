@@ -65,6 +65,17 @@ export type UpstreamResponse = {
     size: number;
 };
 
+/** Audit response type */
+export type AuditResponse = {
+    totalScore: number;
+    breakdown: { structure: number; performance: number; bestPractices: number };
+    suggestions: {
+        category: "Structure" | "Performance" | "Best Practices";
+        issue: string;
+        fix: string;
+    }[];
+};
+
 /** Request node type */
 export type RequestNode = {
     _id: string;

@@ -1,5 +1,5 @@
 /** Imported modules */
-import type { UpstreamRequest, UpstreamResponse } from "../utils/types.ts";
+import type { AuditResponse, UpstreamRequest, UpstreamResponse } from "../utils/types.ts";
 import { env } from "../../../../env.ts";
 
 /** Send the upstream request */
@@ -26,4 +26,27 @@ const sendUpstreamRequest = async (
     }
 };
 
-export const cloudAgentAPI = { sendUpstreamRequest };
+/** Send the audit request */
+const sendAuditRequest = async (
+    request: UpstreamRequest,
+    response: UpstreamResponse
+): Promise<AuditResponse> => {
+    try {
+        const auditResponse = await fetch(`${env.HOST_URL}/api/v1/cloud-agent/request/audit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ request, response })
+        });
+        const result = await auditResponse.json();
+
+        if (!auditResponse.ok) throw new Error(result.message || "Failed to fetch audit request");
+
+        return result.data;
+    } catch (err) {
+        console.error("Error fetching audit request:", err);
+        throw err;
+    }
+};
+
+export const cloudAgentAPI = { sendUpstreamRequest, sendAuditRequest };
