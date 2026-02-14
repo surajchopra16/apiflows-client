@@ -1,12 +1,15 @@
 /** Imported modules */
 import { create } from "zustand/react";
-import type { UpstreamResponse } from "../utils/types.ts";
+import type { UpstreamResponse, UpstreamRequest, AuditResponse } from "../utils/types.ts";
 
 /** Response state type */
 export type ResponseState = {
     requestId: string;
-    data: UpstreamResponse | null;
+    request: UpstreamRequest | null;
+    response: UpstreamResponse | null;
+    audit: AuditResponse | null;
     loading: boolean;
+    loadingAudit: boolean;
     error: string | null;
     controller: AbortController | null;
 };
@@ -14,9 +17,15 @@ export type ResponseState = {
 /** Response store type */
 type ResponseStore = {
     responses: ResponseState[];
-    addLoadingResponse: (requestId: string, controller: AbortController) => void;
+    addLoadingResponse: (
+        requestId: string,
+        request: UpstreamRequest,
+        controller: AbortController
+    ) => void;
     addSuccessResponse: (requestId: string, data: UpstreamResponse) => void;
     addErrorResponse: (requestId: string, error: string) => void;
+    addAuditResponse: (requestId: string, audit: AuditResponse) => void;
+    setLoadingAudit: (requestId: string, loading: boolean) => void;
     cancelResponse: (requestId: string) => void;
     removeResponse: (requestId: string) => void;
     removeResponses: (requestIds: string[]) => void;
@@ -28,11 +37,20 @@ export const useResponseStore = create<ResponseStore>((set) => ({
     responses: [],
 
     /** Add a loading response */
-    addLoadingResponse: (requestId, controller) =>
+    addLoadingResponse: (requestId, request, controller) =>
         set((state) => ({
             responses: [
                 ...state.responses.filter((response) => response.requestId !== requestId),
-                { requestId, data: null, loading: true, error: null, controller }
+                {
+                    requestId,
+                    request,
+                    response: null,
+                    audit: null,
+                    loading: true,
+                    loadingAudit: false,
+                    error: null,
+                    controller
+                }
             ]
         })),
 
@@ -41,7 +59,12 @@ export const useResponseStore = create<ResponseStore>((set) => ({
         set((state) => ({
             responses: [
                 ...state.responses.filter((response) => response.requestId !== requestId),
-                { requestId, data, loading: false, error: null, controller: null }
+                {
+                    ...state.responses.find((response) => response.requestId === requestId)!,
+                    response: data,
+                    loading: false,
+                    controller: null
+                }
             ]
         })),
 
@@ -50,8 +73,31 @@ export const useResponseStore = create<ResponseStore>((set) => ({
         set((state) => ({
             responses: [
                 ...state.responses.filter((response) => response.requestId !== requestId),
-                { requestId, data: null, loading: false, error, controller: null }
+                {
+                    ...state.responses.find((response) => response.requestId === requestId)!,
+                    loading: false,
+                    error,
+                    controller: null
+                }
             ]
+        })),
+
+    /** Add an audit response */
+    addAuditResponse: (requestId, audit) =>
+        set((state) => ({
+            responses: state.responses.map((response) =>
+                response.requestId === requestId
+                    ? { ...response, audit, loadingAudit: false }
+                    : response
+            )
+        })),
+
+    /** Set loading audit */
+    setLoadingAudit: (requestId, loading) =>
+        set((state) => ({
+            responses: state.responses.map((response) =>
+                response.requestId === requestId ? { ...response, loadingAudit: loading } : response
+            )
         })),
 
     /** Cancel a response */

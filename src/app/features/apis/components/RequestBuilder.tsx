@@ -109,7 +109,7 @@ const RequestBuilder = () => {
         const serializedRequest = serializeRequest(request, serializedCookieJar);
 
         const controller = new AbortController();
-        addLoadingResponse(request._id, controller);
+        addLoadingResponse(request._id, serializedRequest, controller);
         try {
             const response = await cloudAgentAPI.sendUpstreamRequest(
                 serializedRequest,
@@ -293,7 +293,7 @@ const RequestBuilder = () => {
             </div>
 
             {/* Response panel */}
-            <ResponsePanel ref={responsePanelRef} response={response} />
+            <ResponsePanel ref={responsePanelRef} data={response} />
         </div>
     );
 };

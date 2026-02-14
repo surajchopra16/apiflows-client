@@ -7,6 +7,8 @@ import { vscodeLightInit } from "@uiw/codemirror-theme-vscode";
 import { toast } from "sonner";
 import { xml } from "@codemirror/lang-xml";
 import { html } from "@codemirror/lang-html";
+import AuditTab from "./AuditTab.tsx";
+import { Sparkles } from "lucide-react";
 
 /** Cookie type */
 type Cookie = {
@@ -25,7 +27,7 @@ type Cookie = {
 export type ResponsePanelRef = { open: () => void; close: () => void };
 
 /** Props type */
-type Props = { ref: Ref<ResponsePanelRef>; response: ResponseState | undefined };
+type Props = { ref: Ref<ResponsePanelRef>; data: ResponseState | undefined };
 
 /** Constants */
 const MIN_HEIGHT = 43;
@@ -279,7 +281,7 @@ const HeadersTab: FC<{ headers: Record<string, string> }> = ({ headers }) => {
 };
 
 /** Response panel component */
-const ResponsePanel: FC<Props> = ({ ref, response }) => {
+const ResponsePanel: FC<Props> = ({ ref, data }) => {
     /** State */
     const [height, setHeight] = useState(MIN_HEIGHT);
     const [collapsed, setCollapsed] = useState(true);
@@ -356,7 +358,7 @@ const ResponsePanel: FC<Props> = ({ ref, response }) => {
                 className="h-1 w-full shrink-0 cursor-ns-resize bg-[#F5F5F5] hover:bg-[#EBEBEB]"></div>
 
             {/* Content */}
-            {!response || response.loading || !response.data || response.error ? (
+            {!data || data.loading || !data.response || data.error ? (
                 <div>
                     {/* Header */}
                     <div className="flex h-10 w-full items-center justify-between px-4">
@@ -390,17 +392,17 @@ const ResponsePanel: FC<Props> = ({ ref, response }) => {
 
                     {/* Content */}
                     <div className="flex h-48 w-full items-center justify-center">
-                        {!response ? (
+                        {!data ? (
                             <div className="text-sm font-normal text-gray-500">
                                 Send a request to see the response here
                             </div>
-                        ) : response.loading ? (
+                        ) : data.loading ? (
                             <div className="text-sm font-normal text-gray-500">
                                 Sending the request...
                             </div>
                         ) : (
                             <div className="text-sm font-normal text-red-500">
-                                Error: {response.error}
+                                Error: {data.error}
                             </div>
                         )}
                     </div>
@@ -411,17 +413,31 @@ const ResponsePanel: FC<Props> = ({ ref, response }) => {
                     <div className="flex h-10 w-full shrink-0 items-center justify-between border-b border-[#EBEBEB] px-4">
                         {/* Tabs */}
                         <div className="flex items-center gap-2">
-                            {["Body", "Cookies", "Headers"].map((tab, index) => (
+                            {["Body", "Cookies", "Headers", "AI Audit"].map((tab, index) => (
                                 <button
                                     key={index}
                                     type="button"
                                     aria-label={`Switch to ${tab} tab`}
                                     onClick={() => setActiveTab(tab.toLowerCase())}
-                                    className={`rounded-md px-2 py-1 text-xs ${
-                                        activeTab === tab.toLowerCase()
-                                            ? "bg-[#F5F5F5] font-medium text-gray-800"
-                                            : "font-normal text-gray-500 hover:bg-[#F5F5F5]"
+                                    className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-all ${
+                                        tab === "AI Audit"
+                                            ? activeTab === tab.toLowerCase()
+                                                ? "bg-blue-600 font-medium text-white"
+                                                : "bg-blue-50 font-medium text-blue-600 hover:bg-blue-100"
+                                            : activeTab === tab.toLowerCase()
+                                              ? "bg-[#F5F5F5] font-medium text-gray-800"
+                                              : "font-normal text-gray-500 hover:bg-[#F5F5F5]"
                                     }`}>
+                                    {tab === "AI Audit" && (
+                                        <Sparkles
+                                            size={12}
+                                            className={
+                                                activeTab === tab.toLowerCase()
+                                                    ? "text-white"
+                                                    : "text-blue-600"
+                                            }
+                                        />
+                                    )}
                                     {tab}
                                 </button>
                             ))}
@@ -432,32 +448,32 @@ const ResponsePanel: FC<Props> = ({ ref, response }) => {
                             {/* Status */}
                             <div
                                 className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${
-                                    response.data.statusCode >= 200 &&
-                                    response.data.statusCode < 300
+                                    data.response.statusCode >= 200 &&
+                                    data.response.statusCode < 300
                                         ? "bg-green-50 text-green-600"
-                                        : response.data.statusCode >= 300 &&
-                                            response.data.statusCode < 400
+                                        : data.response.statusCode >= 300 &&
+                                            data.response.statusCode < 400
                                           ? "bg-yellow-50 text-yellow-600"
                                           : "bg-red-50 text-red-600"
                                 }`}>
-                                <span>{response.data.statusCode}</span>
-                                <span>{response.data.statusMessage}</span>
+                                <span>{data.response.statusCode}</span>
+                                <span>{data.response.statusMessage}</span>
                             </div>
 
                             {/* Duration */}
                             <div className="text-xs font-normal text-gray-500">
-                                {response.data.timings.total < 1000
-                                    ? `${response.data.timings.total} ms`
-                                    : `${(response.data.timings.total / 1000).toFixed(2)} s`}
+                                {data.response.timings.total < 1000
+                                    ? `${data.response.timings.total} ms`
+                                    : `${(data.response.timings.total / 1000).toFixed(2)} s`}
                             </div>
 
                             {/* Size */}
                             <div className="text-xs font-normal text-gray-500">
-                                {response.data.size < 1024
-                                    ? `${response.data.size} B`
-                                    : response.data.size < 1024 * 1024
-                                      ? `${(response.data.size / 1024).toFixed(2)} KB`
-                                      : `${(response.data.size / (1024 * 1024)).toFixed(2)} MB`}
+                                {data.response.size < 1024
+                                    ? `${data.response.size} B`
+                                    : data.response.size < 1024 * 1024
+                                      ? `${(data.response.size / 1024).toFixed(2)} KB`
+                                      : `${(data.response.size / (1024 * 1024)).toFixed(2)} MB`}
                             </div>
 
                             {/* Collapse button */}
@@ -487,17 +503,20 @@ const ResponsePanel: FC<Props> = ({ ref, response }) => {
                     </div>
 
                     {/* Body tab */}
-                    {activeTab === "body" && <BodyTab body={response.data.body} />}
+                    {activeTab === "body" && <BodyTab body={data.response.body} />}
 
                     {/* Cookies tab */}
                     {activeTab === "cookies" && (
-                        <CookiesTab headers={response.data.headers || {}} />
+                        <CookiesTab headers={data.response.headers || {}} />
                     )}
 
                     {/* Headers tab */}
                     {activeTab === "headers" && (
-                        <HeadersTab headers={response.data.headers || {}} />
+                        <HeadersTab headers={data.response.headers || {}} />
                     )}
+
+                    {/* Audit tab */}
+                    {activeTab === "ai audit" && <AuditTab data={data} />}
                 </div>
             )}
         </div>
